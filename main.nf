@@ -279,7 +279,7 @@ process 'filter_variants' {
     file "${vcf.baseName}_filtered.recode.vcf" into filtered_vcfs
   script:
   """
-  vcftools --vcf $vcf --minGQ 20 --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage
+  vcftools --vcf $vcf --minGQ $params.minQuality --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage
   """
 }
 
