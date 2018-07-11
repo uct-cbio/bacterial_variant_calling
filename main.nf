@@ -240,7 +240,7 @@ process '2B_mark_duplicates' {
 /**********
  * PART 3: Variant calling
  *
- * Process 3A: Align reads to the genome
+ * Process 3A: Call the variants
  */
 
 
@@ -308,9 +308,10 @@ process '3D_split_vcf_indel_snps' {
  /**********
  * PART 4: Phylogenetics
  *
- * Process 4A: Align reads to the genome
+ * Process 4A: Create phylogenetic tree
  */
 
+/*
 process '4A_make_consensus_fasta' {
   input:
     file vcf from snp_vcfs
@@ -325,8 +326,8 @@ process '4A_make_consensus_fasta' {
   tabix ${vcf}.gz
   cat $genome | /bcftools/bcftools consensus ${vcf}.gz > ${vcf.baseName}_consensus.fa
   """
-
 }
+*/
 
 
 process '4B_merge_vcf_files' {
