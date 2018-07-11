@@ -188,7 +188,7 @@ mode = 'bwa-mem'
  * Process 2A: Map the reads to the reference genome
  */
 
-process '2_read_mapping' {
+process '2A_read_mapping' {
   input:
     val sample from reads_ch
     file genome from genome_file
@@ -214,7 +214,7 @@ process '2_read_mapping' {
  * Process 2B: Mark duplicate reads
  */
 
-process 'mark_duplicates' {
+process '2B_mark_duplicates' {
   input:
     file sample_bam from bamfiles
   output:
@@ -240,11 +240,11 @@ process 'mark_duplicates' {
 /**********
  * PART 3: Variant calling
  *
- * Process 2A: Align reads to the genome
+ * Process 3A: Align reads to the genome
  */
 
 
-process 'call_variants' {
+process '3A_call_variants' {
   input:
     file genome from genome_file
     file sample_bam from dedup_bamfiles
@@ -257,7 +257,7 @@ process 'call_variants' {
 
 }
 
-process 'calc_coverage' {
+process '3B_calc_coverage' {
   input:
      set file(vcf), file(bam) from vcf_bam_files
   output:
@@ -272,7 +272,7 @@ process 'calc_coverage' {
 
 
 
-process 'filter_variants' {
+process '3C_filter_variants' {
   input:
     set file(vcf), file(bam), coverage from vcf_bam_cov_files
   output:
@@ -283,7 +283,7 @@ process 'filter_variants' {
   """
 }
 
-process 'split_vcf_indel_snps' {
+process '3D_split_vcf_indel_snps' {
   publishDir "${params.outdir}/variants", mode: "link"
 
   input:
@@ -308,10 +308,10 @@ process 'split_vcf_indel_snps' {
  /**********
  * PART 4: Phylogenetics
  *
- * Process 2A: Align reads to the genome
+ * Process 4A: Align reads to the genome
  */
 
-process 'make consensus fasta' {
+process '4A_make_consensus_fasta' {
   input:
     file vcf from snp_vcfs
     file genome from genome_file
@@ -329,7 +329,7 @@ process 'make consensus fasta' {
 }
 
 
-process 'Merge vcf files' {
+process '4B_merge_vcf_files' {
   input:
     file gz_vcf from gz_vcfs.collect()
     file tbi_index from tbi_vcfs.collect()
@@ -342,7 +342,7 @@ process 'Merge vcf files' {
 }
 
 
-process 'Convert to Phylip format' {
+process '4C_convert_to_phylip_format' {
   input:
     file merged_vcf_file from merged_vcf
   output:
@@ -354,7 +354,7 @@ process 'Convert to Phylip format' {
 }
 
 
-process 'Run RAxML' {
+process '4D_run_RAxML' {
 
   publishDir "${params.outdir}/RAxML", mode: "copy", overwrite: false
 
