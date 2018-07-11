@@ -311,24 +311,6 @@ process '3D_split_vcf_indel_snps' {
  * Process 4A: Create phylogenetic tree
  */
 
-/*
-process '4A_make_consensus_fasta' {
-  input:
-    file vcf from snp_vcfs
-    file genome from genome_file
-  output:
-    file "${vcf.baseName}_consensus.fa" into consensus_fasta
-    file "${vcf}.gz" into gz_vcfs
-    file "${vcf}.gz.tbi" into tbi_vcfs
-  script:
-  """
-  bgzip -c $vcf > ${vcf}.gz
-  tabix ${vcf}.gz
-  cat $genome | /bcftools/bcftools consensus ${vcf}.gz > ${vcf.baseName}_consensus.fa
-  """
-}
-*/
-
 
 process '4B_merge_vcf_files' {
   input:
