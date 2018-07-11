@@ -312,6 +312,21 @@ process '3D_split_vcf_indel_snps' {
  */
 
 
+process '4A_bgzip_vcf' {
+  input:
+    file vcf from snp_vcfs
+  output:
+    file "${vcf}.gz" into gz_vcfs
+    file "${vcf}.gz.tbi" into tbi_vcfs
+  script:
+  """
+  bgzip -c $vcf > ${vcf}.gz
+  tabix ${vcf}.gz
+  """
+}
+
+
+
 process '4B_merge_vcf_files' {
   input:
     file gz_vcf from gz_vcfs.collect()
