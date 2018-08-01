@@ -18,6 +18,10 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     && apt-get clean \
     && apt-get purge
 
+
+RUN pip install --upgrade pip
+RUN pip install numpy
+
 # install Picard Tools
 RUN curl -fksSL https://github.com/broadinstitute/picard/releases/download/2.9.0/picard.jar > /usr/local/bin/picard.jar && \
     chmod +x /usr/local/bin/picard.jar
@@ -49,8 +53,11 @@ RUN git clone git://github.com/samtools/bcftools.git; cd bcftools; autoheader &&
 # Install SnpEff
 RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
 
-# Install vcf2phylip.py
-RUN git clone https://github.com/edgardomortiz/vcf2phylip.git && cd vcf2phylip && cp ./vcf2phylip.py /usr/local/bin
+# Install vcf2fasta
+RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && cp vcf2fasta.py /usr/local/bin/
+
+# Install convbioseq
+RUN easy_install bioscripts.convert
 
 # Install RAxML
 RUN git clone https://github.com/stamatak/standard-RAxML.git && cd standard-RAxML* && \
@@ -58,9 +65,7 @@ RUN git clone https://github.com/stamatak/standard-RAxML.git && cd standard-RAxM
     rm *.o && \
     make -f Makefile.AVX.PTHREADS.gcc
 
-RUN pip install --upgrade pip
-RUN pip install numpy
-RUN pip install VCF-kit
+# RUN pip install VCF-kit
 # RUN vk setup
 
 ## Install R packages for ggplot2
