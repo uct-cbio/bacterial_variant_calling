@@ -361,10 +361,10 @@ process '4D_run_RAxML' {
     file inphy from phylip_file
     val threads from threads
   output:
-
+  
   script:
   """
-  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 123
+  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 123 -N autoMRE -p 456
   """
 }
 
