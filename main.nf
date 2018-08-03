@@ -347,7 +347,7 @@ process '4C_convert_to_phylip_format' {
     file "*.phy" into phylip_file
   script:
   """
-  python vcf2fasta/vcf2fasta.py -i $merged_vcf_file -o converted.fa
+  python /usr/local/bin/vcf2fasta.py -i $merged_vcf_file -o converted.fa
   convbioseq -i fasta phylip converted.fa
   """
 }
