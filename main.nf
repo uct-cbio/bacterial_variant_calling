@@ -364,7 +364,7 @@ process '4D_run_RAxML' {
 
   script:
   """
-  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads
+  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 123
   """
 }
 
