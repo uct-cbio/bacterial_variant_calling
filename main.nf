@@ -60,6 +60,7 @@ if (params.help){
 
 params.outdir     = "$baseDir"
 
+temp_out_dir = "/Volumes/External/CIDRI_Data/bacterial_genomics_pipeline/bacterial_variant_calling/new_reads/"
 
 //Validate inputs
 if ( params.genome == false ) {
@@ -93,16 +94,10 @@ Output   : $params.outdir
  */
 
 genome_file     = file(params.genome)
+sample_sheet    = file(params.reads)
 reads_ch        = Channel.fromFilePairs(params.reads)
 threads         = 4
 
-designFile = file(params.reads)
-reads_ch = Channel
-                   .from(designFile)
-                   .splitCsv(header: true)
-                   .view { sample ->
-       println "${sample.number} - ${sample.isolate} - ${sample.R1}"
-    }
 
 
 
@@ -170,6 +165,28 @@ process '1C_prepare_genome_bwa' {
   """
 }
 
+
+process '1D_prepare_samples' {
+
+  publishDir "$temp_out_dir", mode: "link"
+
+  input:
+      file samples from sample_sheet
+  output:
+      file "sample_sheet_new.csv" into newSampleSheet
+      file "*.fastq" into SRA_fastq
+
+  script:
+  """
+  python3 /vcf2fasta/process_samples.py -i $samples -f $temp_out_dir --quick_test_mode True
+  """
+}
+
+newSampleChannel = newSampleSheet.splitCsv(header: true)
+
+
+
+
 /*
  *  END OF PART 1
  *********/
@@ -190,7 +207,7 @@ mode = 'bwa-mem'
 
 process '2A_read_mapping' {
   input:
-    val sample from reads_ch
+    val sample from newSampleChannel
     file genome from genome_file
     file genome_bwa_amb
     file genome_bwa_ann
@@ -347,7 +364,7 @@ process '4C_convert_to_phylip_format' {
     file "*.phy" into phylip_file
   script:
   """
-  python /usr/local/bin/vcf2fasta.py -i $merged_vcf_file -o converted
+  python3 /vcf2fasta/vcf2fasta.py -i $merged_vcf_file -o converted -q 2000
   convbioseq -i fasta phylip converted.fa
   """
 }
@@ -355,7 +372,7 @@ process '4C_convert_to_phylip_format' {
 
 process '4D_run_RAxML' {
 
-  publishDir "${params.outdir}/RAxML", mode: "copy", overwrite: false
+  publishDir "${params.outdir}/RAxML", mode: "link", overwrite: false
 
   input:
     file inphy from phylip_file

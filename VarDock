@@ -13,6 +13,7 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     default-jre \
     git-core \
     bc \
+    python3 \
     wget \
     python-pip \
     && apt-get clean \
@@ -54,9 +55,10 @@ RUN git clone git://github.com/samtools/bcftools.git; cd bcftools; autoheader &&
 RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
 
 # Install vcf2fasta
-RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && cp vcf2fasta.py /usr/local/bin/
+RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
 
 # Install convbioseq
+RUN easy_install biopython
 RUN easy_install bioscripts.convert
 
 # Install RAxML
@@ -71,4 +73,10 @@ RUN git clone https://github.com/stamatak/standard-RAxML.git && cd standard-RAxM
 ## Install R packages for ggplot2
 RUN R -e 'install.packages( c("reshape2","optparse"), repos="http://cloud.r-project.org/");' && \
     apt-get update && apt-get install r-cran-ggplot2 -y -q
+
+# Install SRA toolkit
+RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.2/sratoolkit.2.9.2-ubuntu64.tar.gz" && \
+   tar -xzf sratoolkit.2.9.2-ubuntu64.tar.gz
+ENV PATH "$PATH:/sratoolkit.2.9.2-ubuntu64/bin/:/vcf2fasta/"
+
 
