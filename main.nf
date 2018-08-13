@@ -27,6 +27,7 @@ def helpMessage() {
         -profile                      Hardware config to use. local / uct_hex
 
     Other arguments:
+        --SRAdir                      The directory where reads downloaded from the SRA will be stored
         --outdir                      The output directory where the results will be saved
         --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
         -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
@@ -60,7 +61,12 @@ if (params.help){
 
 params.outdir     = "$baseDir"
 
-temp_out_dir = "/Volumes/External/CIDRI_Data/bacterial_genomics_pipeline/bacterial_variant_calling/new_reads/"
+temp_out_dir      = "$baseDir/"
+
+vcf_qual_cutoff   = 1000
+mode              = 'bwa-mem'
+variant_caller    = 'freebayes'
+
 
 //Validate inputs
 if ( params.genome == false ) {
@@ -199,7 +205,6 @@ newSampleChannel = newSampleSheet.splitCsv(header: true)
  * Process 2A: Align reads to the genome
  */
 
-mode = 'bwa-mem'
 
 /*
  * Process 2A: Map the reads to the reference genome
@@ -267,10 +272,23 @@ process '3A_call_variants' {
     file sample_bam from dedup_bamfiles
   output:
     set file("${sample_bam.baseName}.vcf"), file("$sample_bam") into vcf_bam_files
+
+
   script:
+  if( variant_caller == 'freebayes' )
+    """
+    freebayes -f $genome -p 1 $sample_bam > need_rename.vcf
+    echo "unknown ${sample_bam.baseName}\n" > sample_names.txt
+    /bcftools/bcftools reheader need_rename.vcf --samples sample_names.txt -o ${sample_bam.baseName}.vcf
+
+    """
+  else if( variant_caller == 'samtools' )
     """
     freebayes -f $genome -p 1 $sample_bam > ${sample_bam.baseName}.vcf
     """
+  else
+    error "Invalid alignment mode: ${variant_caller}"
+
 
 }
 
@@ -364,7 +382,7 @@ process '4C_convert_to_phylip_format' {
     file "*.phy" into phylip_file
   script:
   """
-  python3 /vcf2fasta/vcf2fasta.py -i $merged_vcf_file -o converted -q 2000
+  python3 /vcf2fasta/vcf2fasta.py -i $merged_vcf_file -o converted -q $vcf_qual_cutoff
   convbioseq -i fasta phylip converted.fa
   """
 }
@@ -378,6 +396,7 @@ process '4D_run_RAxML' {
     file inphy from phylip_file
     val threads from threads
   output:
+    file "*.out" into RAxML_out
   
   script:
   """
