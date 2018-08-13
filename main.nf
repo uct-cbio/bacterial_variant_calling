@@ -314,7 +314,7 @@ process '3C_filter_variants' {
     file "${vcf.baseName}_filtered.recode.vcf" into filtered_vcfs
   script:
   """
-  vcftools --vcf $vcf --minGQ $params.minQuality --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage
+  vcftools --vcf $vcf --minGQ $params.minQuality --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage --minDP 3
   """
 }
 
@@ -370,7 +370,7 @@ process '4B_merge_vcf_files' {
     file "out_merged.vcf" into merged_vcf
   script:
   """
-  vcf-merge $gz_vcf > out_merged.vcf
+  /bcftools/bcftools merge $gz_vcf -o out_merged.vcf
   """
 }
 
@@ -396,7 +396,7 @@ process '4D_run_RAxML' {
     file inphy from phylip_file
     val threads from threads
   output:
-    file "*.out" into RAxML_out
+    file "*.outFile" into RAxML_out
   
   script:
   """
