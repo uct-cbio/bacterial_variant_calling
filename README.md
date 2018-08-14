@@ -35,6 +35,19 @@ This is assuming you have a sample sheet formatted as described bellow, and a do
 To allow for both local reads and reads from the [SRA](https://www.ncbi.nlm.nih.gov/sra) to be used, the pipeline has the 
 ability to pull reads from the SRA based on the accession number (eg, SRR7505567). 
 
+number | origin | replicate | isolate | R1 | R2
+------------ | ------------- | ------------- | ------------- | ------------- | -------------
+1 | genomic | 1 | wgs_sample_1 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+2 | genomic | 2 | wgs_sample_1 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+3 | genomic | 3 | wgs_sample_1 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+4 | genomic | 1 | wgs_sample_2 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+5 | genomic | 2 | wgs_sample_2 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+6 | genomic | 3 | wgs_sample_2 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+7 | genomic | 1 | wgs_sample_3 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+8 | genomic | 2 | wgs_sample_3 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+9 | genomic | 3 | wgs_sample_3 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
+6 | genomic | 1 | H37Rv | SRR7505567 | 
+
 
 ## Prerequisites
 [Nextflow](https://www.nextflow.io), [Docker](https://www.docker.com). All other dependencies are found in the included Docker recipe (VarDock). 
