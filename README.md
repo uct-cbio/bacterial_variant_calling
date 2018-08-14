@@ -33,7 +33,7 @@ This is assuming you have a sample sheet formatted as described bellow, and a do
 
 ## Sample file
 To allow for both local reads and reads from the [SRA](https://www.ncbi.nlm.nih.gov/sra) to be used, the pipeline has the 
-ability to pull reads from the SRA based on the accession number (eg, SRR5989977). 
+ability to pull reads from the SRA based on the accession number (eg, [SRR5989977](https://www.ncbi.nlm.nih.gov/sra/SRX3145707[accn])). 
 
 The 'number' column must contain a unique value. 
 
