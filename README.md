@@ -33,7 +33,9 @@ This is assuming you have a sample sheet formatted as described bellow, and a do
 
 ## Sample file
 To allow for both local reads and reads from the [SRA](https://www.ncbi.nlm.nih.gov/sra) to be used, the pipeline has the 
-ability to pull reads from the SRA based on the accession number (eg, SRR7505567). 
+ability to pull reads from the SRA based on the accession number (eg, SRR5989977). 
+
+The 'number' column must contain a unique value. 
 
 number | origin | replicate | isolate | R1 | R2
 ------------ | ------------- | ------------- | ------------- | ------------- | -------------
@@ -46,8 +48,18 @@ number | origin | replicate | isolate | R1 | R2
 7 | genomic | 1 | wgs_sample_3 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
 8 | genomic | 2 | wgs_sample_3 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
 9 | genomic | 3 | wgs_sample_3 | path/to/reads/reads_R1.fq | path/to/reads/reads_R2.fq
-6 | genomic | 1 | H37Rv | SRR7505567 | 
+10 | genomic | 1 | H37Rv | SRR5989977 | 
 
+
+In the above example, samples 1-9 are locally stored where sample 10 is a control sample from the SRA. 
+Including the accession number in the R1 column will result in the reads from the SRA to be downloaded and used in the analysis. 
+This must be exported to a csv file, with a comma ',' separating the columns:
+
+    number,origin,replicate,isolate,R1,R2
+    1,genomic,1,wgs_sample_1,path/to/reads/reads_R1.fq,path/to/reads/reads_R2.fq
+    2,genomic,2,wgs_sample_1,path/to/reads/reads_R1.fq,path/to/reads/reads_R2.fq
+    ...
+    10,genomic,1,H37Rv,SRR5989977
 
 ## Prerequisites
 [Nextflow](https://www.nextflow.io), [Docker](https://www.docker.com). All other dependencies are found in the included Docker recipe (VarDock). 
