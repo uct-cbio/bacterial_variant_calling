@@ -16,13 +16,13 @@ This is assuming you have a sample sheet formatted as described bellow, and a do
     nextflow run uct-cbio/bacterial_variant_calling --reads sample_sheet.csv --genome refgenome.fa -profile uct_hex
     Mandatory arguments:
       --reads                       Path to input data (must be surrounded with quotes)
-      -profile                      Hardware config to use. Currently profile available for UCT's HPC 'uct_hex' - create your                                     own if necessary
       --genome                      Path te reference genome against which the reads will be aligned (in fasta format).
+      -profile                      Hardware config to use. Currently profile available for UCT's HPC 'uct_hex' - create your own if necessary
     
     Other arguments:
       --outdir                      The output directory where the results will be saved
       --SRAdir                      The directory where reads downloaded from the SRA will be stored
-      --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run                                     sent to you when the workflow exits
+      --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
       -name                     
      
      Example run:
