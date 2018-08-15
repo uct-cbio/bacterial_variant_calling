@@ -26,11 +26,19 @@ def helpMessage() {
         --genome                      The reference genome to be used in fasta format. Also acts as an outgroup.
         -profile                      Hardware config to use. local / uct_hex
 
+    Optional arguments:
+        --minQuality                  The minimum quality to be passed to vcf-tools for filtering variants.
+        --vcf_qual_cutoff
+        --aligner
+        --variant_caller
+
+
     Other arguments:
         --SRAdir                      The directory where reads downloaded from the SRA will be stored
         --outdir                      The output directory where the results will be saved
         --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
         -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
+
 
 
 
@@ -59,13 +67,10 @@ if (params.help){
  * Define the default parameters
  */
 
-params.outdir     = "$baseDir"
+//params.outdir            = "$baseDir"
 
-temp_out_dir      = "$baseDir/"
+//params.SRAdir            = "$baseDir/"
 
-vcf_qual_cutoff   = 1000
-mode              = 'bwa-mem'
-variant_caller    = 'freebayes'
 
 
 //Validate inputs
@@ -93,6 +98,7 @@ Bacterial WGS variant pipeline v0.1
 genome   : $params.genome
 reads    : $params.reads
 Output   : $params.outdir
+SRA dir  : $params.SRAdir
 """
 
 /*
@@ -103,9 +109,9 @@ genome_file     = file(params.genome)
 sample_sheet    = file(params.reads)
 reads_ch        = Channel.fromFilePairs(params.reads)
 threads         = 4
-
-
-
+aligner         = params.aligner
+variant_caller  = params.variant_caller
+vcf_qual_cutoff = params.vcf_qual_cutoff
 
 
 /**********
@@ -174,7 +180,7 @@ process '1C_prepare_genome_bwa' {
 
 process '1D_prepare_samples' {
 
-  publishDir "$temp_out_dir", mode: "link"
+  publishDir "$params.SRAdir", mode: "link"
 
   input:
       file samples from sample_sheet
@@ -184,7 +190,7 @@ process '1D_prepare_samples' {
 
   script:
   """
-  python3 /vcf2fasta/process_samples.py -i $samples -f $temp_out_dir --quick_test_mode True
+  python3 /vcf2fasta/process_samples.py -i $samples -f $params.SRAdir/ --quick_test_mode True
   """
 }
 
@@ -222,13 +228,13 @@ process '2A_read_mapping' {
   output:
     file "sample_${sample.number}_sorted.bam" into bamfiles  
   script:
-  if( mode == 'bwa-mem' )
+  if( aligner == 'bwa-mem' )
     """
     bwa mem $genome $sample.R1 $sample.R2 | samtools sort -O BAM -o sample_${sample.number}_sorted.bam
     """
   
   else
-    error "Invalid alignment mode: ${mode}"
+    error "Invalid aligner: ${aligner}"
     
 }
 
@@ -287,7 +293,7 @@ process '3A_call_variants' {
     freebayes -f $genome -p 1 $sample_bam > ${sample_bam.baseName}.vcf
     """
   else
-    error "Invalid alignment mode: ${variant_caller}"
+    error "Invalid variant caller: ${variant_caller}"
 
 
 }
@@ -314,7 +320,7 @@ process '3C_filter_variants' {
     file "${vcf.baseName}_filtered.recode.vcf" into filtered_vcfs
   script:
   """
-  vcftools --vcf $vcf --minGQ $params.minQuality --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage --minDP 3
+  vcftools --vcf $vcf --minGQ $params.minQuality --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage
   """
 }
 
