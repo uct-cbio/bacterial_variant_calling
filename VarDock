@@ -79,4 +79,6 @@ RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.2/sratoolkit.2.9.2-ubun
    tar -xzf sratoolkit.2.9.2-ubuntu64.tar.gz
 ENV PATH "$PATH:/sratoolkit.2.9.2-ubuntu64/bin/:/vcf2fasta/"
 
+# Install trimmomatic
 
+RUN curl -L http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip > Trimmomatic-0.38.zip && unzip Trimmomatic-0.38.zip

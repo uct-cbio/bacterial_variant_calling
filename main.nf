@@ -28,9 +28,9 @@ def helpMessage() {
 
     Optional arguments:
         --minQuality                  The minimum quality to be passed to vcf-tools for filtering variants.
-        --vcf_qual_cutoff
-        --aligner
-        --variant_caller
+        --vcf_qual_cutoff             Soon to be removed
+        --aligner                     Currently only bwa-mem
+        --variant_caller              Currently only freebayes
 
 
     Other arguments:
@@ -186,15 +186,33 @@ process '1D_prepare_samples' {
       file samples from sample_sheet
   output:
       file "sample_sheet_new.csv" into newSampleSheet
-      file "*.fastq" into SRA_fastq
-
+      file "*.fastq" into SRA_new_reads
   script:
   """
   python3 /vcf2fasta/process_samples.py -i $samples -f $params.SRAdir/ --quick_test_mode True
   """
 }
 
-newSampleChannel = newSampleSheet.splitCsv(header: true)
+newSampleSheet
+  .splitCsv(header:true)
+  .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
+  .set { newSampleChannel }
+
+process '1E_trim_samples' {
+
+  input:
+    set number, file(R1), file(R2) from newSampleChannel
+  output:
+    file "sample_x_forward_paired.trimmed.fq" into forwardTrimmed
+    file "sample_x_reverse_paired.trimmed.fq" into reverseTrimmed
+    val "$number" into sampleNumber
+  script:
+  """
+  head $R1 > this.txt
+  java -jar /Trimmomatic-0.38/trimmomatic-0.38.jar PE -threads 8 -phred33 $R1 $R2 sample_x_forward_paired.trimmed.fq output_forward_unpaired.fq sample_x_reverse_paired.trimmed.fq output_reverse_unpaired.fq SLIDINGWINDOW:4:18 MINLEN:36
+  """
+
+}
 
 
 
@@ -218,7 +236,9 @@ newSampleChannel = newSampleSheet.splitCsv(header: true)
 
 process '2A_read_mapping' {
   input:
-    val sample from newSampleChannel
+    file forwardTrimmed
+    file reverseTrimmed
+    val sampleNumber
     file genome from genome_file
     file genome_bwa_amb
     file genome_bwa_ann
@@ -226,11 +246,11 @@ process '2A_read_mapping' {
     file genome_bwa_pac
     file genome_bwa_sa
   output:
-    file "sample_${sample.number}_sorted.bam" into bamfiles  
+    file "sample_${sampleNumber}_sorted.bam" into bamfiles
   script:
   if( aligner == 'bwa-mem' )
     """
-    bwa mem $genome $sample.R1 $sample.R2 | samtools sort -O BAM -o sample_${sample.number}_sorted.bam
+    bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}_sorted.bam
     """
   
   else
@@ -320,9 +340,11 @@ process '3C_filter_variants' {
     file "${vcf.baseName}_filtered.recode.vcf" into filtered_vcfs
   script:
   """
-  vcftools --vcf $vcf --minGQ $params.minQuality --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage
+  vcftools --vcf $vcf --minQ $params.minQuality --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage
   """
 }
+
+
 
 process '3D_split_vcf_indel_snps' {
   publishDir "${params.outdir}/variants", mode: "link"
