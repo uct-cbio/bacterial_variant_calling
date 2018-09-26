@@ -12,7 +12,8 @@ This pipeline is currently under development. If you wish to use it in future, p
 This is assuming you have a sample sheet formatted as described bellow, and a docker image created with VarDock called 'bacterial_env'.
 
 ## Basic usage: 
-    The typical command for running the pipeline is as follows:
+The typical command for running the pipeline is as follows:
+
     nextflow run uct-cbio/bacterial_variant_calling --reads sample_sheet.csv --genome refgenome.fa -profile uct_hex
     Mandatory arguments:
       --reads                       Path to input data (must be surrounded with quotes)
@@ -25,11 +26,17 @@ This is assuming you have a sample sheet formatted as described bellow, and a do
       --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
       -name                     
      
-     Example run:
-     To run on UCT hex
-     1) Start a 'screen' session from the headnode
-     2) Start an interactive job using: qsub -I -q UCTlong -l nodes=1:series600:ppn=1 -d `pwd`
-     3) A typical command would look something like:
+Example run:
+To run on UCT hex
+1) Start a 'screen' session from the headnode
+2) Start an interactive job using: qsub -I -q UCTlong -l nodes=1:series600:ppn=1 -d `pwd`
+3) A typical command would look something like:
+
+    
+    nextflow run uct-cbio/bacterial_variant_calling --reads sample_sheet.csv --genome refgenome.fa -profile uct_hex --SRAdir /path/to/writable/dir/
+
+If you are using reads from the SRA, these will be downloaded using the SRA toolkit and deposited in the 
+specified --SRAdir. Please make sure that this directory is writable.
 
 ## Sample file
 To allow for both local reads and reads from the [SRA](https://www.ncbi.nlm.nih.gov/sra) to be used, the pipeline has the 
@@ -68,20 +75,30 @@ Note: if you are working on UCT hex you can simply use the singularity image spe
 
 ## Documentation
 
+Read mapping:  [BWA](http://bio-bwa.sourceforge.net)
+
 Variant caller used: [Freebayes](https://arxiv.org/abs/1207.3907)
 
 Phylogenetic analysis: [RAxML](https://sco.h-its.org/exelixis/web/software/raxml/index.html)
 
 ## Other useful info
 
-[Docker to singularity](https://github.com/singularityware/docker2singularity)
+To create a Singularity image from a Docker image, please make use of 
+[Docker to singularity](https://github.com/singularityware/docker2singularity). This is needed to run the pipeline on the
+UCT cluster. 
 
 
 ## Built With
-
+* [Nextflow](https://www.nextflow.io/)
+* [Docker](https://www.docker.com/what-docker)
+* [Singularity](https://singularity.lbl.gov/)
 
 ## Credits
+This pipeline was developed by members of the Bioinformatics Support Team (BST) at the University of Cape Town. Dr.
+Jon Ambler is a member of CIDRI-Africa, and the main developer of this pipeline, using the layout and documentation
+ outlined by Dr Katie Lennard and Gerrit Botha.
 
+Additional thanks to Paolo Di Tommaso, the developer of NextFlow, for their help troubleshooting. 
 
 ## License
 

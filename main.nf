@@ -208,7 +208,6 @@ process '1E_trim_samples' {
     val "$number" into sampleNumber
   script:
   """
-  head $R1 > this.txt
   java -jar /Trimmomatic-0.38/trimmomatic-0.38.jar PE -threads 8 -phred33 $R1 $R2 sample_x_forward_paired.trimmed.fq output_forward_unpaired.fq sample_x_reverse_paired.trimmed.fq output_reverse_unpaired.fq SLIDINGWINDOW:4:18 MINLEN:36
   """
 
