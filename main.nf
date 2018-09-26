@@ -189,7 +189,7 @@ process '1D_prepare_samples' {
       file "*.fastq" into SRA_new_reads
   script:
   """
-  python3 /vcf2fasta/process_samples.py -i $samples -f $params.SRAdir/ --quick_test_mode True
+  python3 /vcf2fasta/process_samples.py -i $samples -f $params.SRAdir/
   """
 }
 
