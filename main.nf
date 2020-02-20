@@ -267,7 +267,7 @@ process trim_galore {
         }
 
     input:
-    set val(name), file(reads) from raw_reads_trimgalore
+    set number, file(R1), file(R2) from newSampleChannel
     file wherearemyfiles from ch_where_trim_galore.collect()
 
     output:
@@ -284,11 +284,11 @@ process trim_galore {
     tpc_r2 = three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${three_prime_clip_r2}" : ''
     if (params.singleEnd) {
         """
-        trim_galore --fastqc --gzip $c_r1 $tpc_r1 $reads
+        trim_galore --fastqc --gzip $c_r1 $tpc_r1 $R1 $R2
         """
     } else {
         """
-        trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
+        trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $R1 $R2
         """
     }
 }
