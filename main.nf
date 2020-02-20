@@ -78,9 +78,34 @@ if (params.help){
  */
 
 //params.outdir            = "$baseDir"
-
 //params.SRAdir            = "$baseDir/"
 
+
+ch_mdsplot_header = Channel.fromPath("$baseDir/assets/mdsplot_header.txt")
+ch_heatmap_header = Channel.fromPath("$baseDir/assets/heatmap_header.txt")
+ch_biotypes_header = Channel.fromPath("$baseDir/assets/biotypes_header.txt")
+Channel.fromPath("$baseDir/assets/where_are_my_files.txt")
+       .into{ch_where_trim_galore; ch_where_star; ch_where_hisat2; ch_where_hisat2_sort}
+
+// Define regular variables so that they can be overwritten
+clip_r1 = params.clip_r1
+clip_r2 = params.clip_r2
+three_prime_clip_r1 = params.three_prime_clip_r1
+three_prime_clip_r2 = params.three_prime_clip_r2
+forward_stranded = params.forward_stranded
+reverse_stranded = params.reverse_stranded
+unstranded = params.unstranded
+
+// Preset trimming options
+if (params.pico){
+    clip_r1 = 3
+    clip_r2 = 0
+    three_prime_clip_r1 = 0
+    three_prime_clip_r2 = 3
+    forward_stranded = true
+    reverse_stranded = false
+    unstranded = false
+}
 
 
 //Validate inputs
