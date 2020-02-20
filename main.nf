@@ -81,7 +81,6 @@ if (params.help){
 
 //params.outdir            = "$baseDir"
 //params.SRAdir            = "$baseDir/"
-params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
 
 
 ch_mdsplot_header = Channel.fromPath("$baseDir/assets/mdsplot_header.txt")
