@@ -301,13 +301,15 @@ process trim_galore {
     file wherearemyfiles from ch_where_trim_galore.collect()
 
     output:
-    file "*fq.gz" into trimmed_reads
-    file "*fq.gz" into trimmed_reads_for_srst2
+    file "*_R1.fq.gz" into forwardTrimmed
+    file "*_R2.fq.gz" into reverseTrimmed
+    file "*R1.fq.gz" into forward_trimmed_reads_for_srst2
+    file "*R2.fq.gz" into reverse_trimmed_reads_for_srst2
     file "*trimming_report.txt" into trimgalore_results
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
     file "where_are_my_files.txt"
+    val "$number" into sampleNumber_srst2
     val "$number" into sampleNumber
-
 
     script:
     c_r1 = clip_r1 > 0 ? "--clip_r1 ${clip_r1}" : ''
@@ -344,11 +346,12 @@ process srst2 {
     publishDir "${params.outdir}/srst2", mode: "copy"
 
     input:
-        file trimmed_reads_for_srst2
-        val sampleNumber
+        file forward_trimmed_reads_for_srst2
+        file reverse_trimmed_reads_for_srst2
+        val sampleNumber_srst2
 
     output:
-	file("${sampleNumber}_srst2*")
+	file("${sampleNumber_srst2}_srst2*")
 
     script:
     geneDB = params.gene_db ? "--gene_db $gene_db" : ''
@@ -356,7 +359,7 @@ process srst2 {
     mlstdef = params.mlst_db ? "--mlst_definitions $mlst_definitions" : ''
     mlstdelim = params.mlst_db ? "--mlst_delimiter $params.mlst_delimiter" : ''
     """
-    srst2 --input_pe $reads --output ${sampleNumber}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
+    srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
     """
 }
 
