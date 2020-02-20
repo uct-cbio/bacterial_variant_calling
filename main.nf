@@ -34,6 +34,7 @@ def helpMessage() {
     Mandatory arguments:
         --reads                       The sample sheet containing the paths to the fastq files, as well as sample names.
         --genome                      The reference genome to be used in fasta format. Also acts as an outgroup.
+        --gff                         Path to GFF3 file
         -profile                      Hardware config to use. local / uct_hex
 
     Optional arguments:
@@ -66,6 +67,7 @@ params.project = false
 params.email = false
 params.plaintext_email = false
 
+
 // Show help message
 params.help = false
 if (params.help){
@@ -79,6 +81,7 @@ if (params.help){
 
 //params.outdir            = "$baseDir"
 //params.SRAdir            = "$baseDir/"
+params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
 
 
 ch_mdsplot_header = Channel.fromPath("$baseDir/assets/mdsplot_header.txt")
@@ -118,6 +121,22 @@ if ( params.reads == false ) {
 }
 
 
+if( params.gtf ){
+    Channel
+        .fromPath(params.gtf)
+        .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
+        .into { gtf_makeSTARindex; gtf_makeHisatSplicesites; gtf_makeHISATindex; gtf_makeBED12;
+              gtf_star; gtf_dupradar; gtf_featureCounts; gtf_stringtieFPKM }
+} else if( params.gff ){
+  gffFile = Channel.fromPath(params.gff)
+                   .ifEmpty { exit 1, "GFF annotation file not found: ${params.gff}" }
+} else {
+    exit 1, "No GTF or GFF3 annotation specified!"
+}
+
+
+
+
 // Has the run name been specified by the user?
 custom_runName = params.name
 if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
@@ -147,6 +166,52 @@ threads         = 4
 aligner         = params.aligner
 variant_caller  = params.variant_caller
 vcf_qual_cutoff = params.vcf_qual_cutoff
+
+
+
+/*
+ * PREPROCESSING - Convert GFF3 to GTF
+ */
+if(params.gff){
+  process convertGFFtoGTF {
+      tag "$gff"
+
+      input:
+      file gff from gffFile
+
+      output:
+      file "${gff.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12,
+            gtf_star, gtf_dupradar, gtf_featureCounts
+
+      script:
+      """
+      gffread $gff -T -o ${gff.baseName}.gtf
+      """
+  }
+}
+
+/*
+ * PREPROCESSING - Build BED12 file
+ */
+if(!params.bed12){
+    process makeBED12 {
+        tag "$gtf"
+        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+                   saveAs: { params.saveReference ? it : null }, mode: 'copy'
+
+        input:
+        file gtf from gtf_makeBED12
+
+        output:
+        file "${gtf.baseName}.bed" into bed_rseqc, bed_genebody_coverage
+
+        script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
+        """
+        gtf2bed $gtf > ${gtf.baseName}.bed
+        """
+    }
+}
+
 
 
 /**********
@@ -346,9 +411,9 @@ process srst2 {
     publishDir "${params.outdir}/srst2", mode: "copy"
 
     input:
-        file forward_trimmed_reads_for_srst2
-        file reverse_trimmed_reads_for_srst2
-        val sampleNumber_srst2
+    file forward_trimmed_reads_for_srst2
+    file reverse_trimmed_reads_for_srst2
+    val sampleNumber_srst2
 
     output:
 	file("${sampleNumber_srst2}_srst2*")
@@ -373,31 +438,36 @@ process srst2 {
  * Process 2A: Align reads to the reference genome
  */
 
-process '2A_read_mapping' {
-  input:
-    file forwardTrimmed
-    file reverseTrimmed
-    val sampleNumber
-    file genome from genome_file
-    file genome_bwa_amb
-    file genome_bwa_ann
-    file genome_bwa_bwt
-    file genome_bwa_pac
-    file genome_bwa_sa
-  output:
-    file "sample_${sampleNumber}_sorted.bam" into bamfiles
-  script:
-  if( aligner == 'bwa-mem' )
-    """
-    bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}_sorted.bam
-    samtools index sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_sorted.bai
-    """
-  
-  else
-    error "Invalid aligner: ${aligner}"
-    
-}
 
+if(params.aligner == 'bwa'){
+    process '2A_read_mapping' {
+      input:
+        file forwardTrimmed
+        file reverseTrimmed
+        val sampleNumber
+        file genome from genome_file
+        file genome_bwa_amb
+        file genome_bwa_ann
+        file genome_bwa_bwt
+        file genome_bwa_pac
+        file genome_bwa_sa
+      output:
+        file "sample_${sampleNumber}_sorted.bam" into bamfiles
+        file "sample_${sampleNumber}_sorted.bai" into bamindexfiles
+        file "sample_${sampleNumber}_sorted.bam" into bam_rseqc
+        file "sample_${sampleNumber}_sorted.bai" into bamindexfiles_rseqc
+      script:
+      if( aligner == 'bwa-mem' )
+        """
+        bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}_sorted.bam
+        samtools index sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_sorted.bai
+        """
+
+      else
+        error "Invalid aligner: ${aligner}"
+
+    }
+}
 
 
 /*
@@ -437,7 +507,7 @@ process rseqc {
 
     input:
     file bam_rseqc
-    file index from bam_index_rseqc
+    file index from bamindexfiles_rseqc
     file bed12 from bed_rseqc.collect()
 
     output:
