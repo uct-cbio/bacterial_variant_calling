@@ -220,37 +220,38 @@ newSampleSheet
         saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
 
     input:
-    file forwardTrimmed
-    file reverseTrimmed
-    val sampleNumber
+    #file forwardTrimmed
+    #file reverseTrimmed
+    set number, file(R1), file(R2) from newSampleChannel
+    #val sampleNumber
 
     output:
     file "*_fastqc.{zip,html}" into fastqc_results
 
     script:
     """
-    cat $forwardTrimmed $reverseTrimmed > ${sampleNumber}_merged.fastq
-    fastqc -q ${sampleNumber}_merged.fastq
+    cat $R1 $R2 > ${sampleNumber}_merged.fastq
+    fastqc -q ${number}_merged.fastq
     """
 }
 
 
-
-process '1E_trim_samples' {
-
-  input:
-    set number, file(R1), file(R2) from newSampleChannel
-  output:
-    file "sample_x_forward_paired.trimmed.fq" into forwardTrimmed
-    file "sample_x_reverse_paired.trimmed.fq" into reverseTrimmed
-    val "$number" into sampleNumber
-  script:
-  """
-  java -jar /Trimmomatic-0.38/trimmomatic-0.38.jar PE -threads 8 -phred33 $R1 $R2 sample_x_forward_paired.trimmed.fq output_forward_unpaired.fq sample_x_reverse_paired.trimmed.fq output_reverse_unpaired.fq SLIDINGWINDOW:4:18 MINLEN:36
-  """
-
-}
-
+/*
+*process '1E_trim_samples' {
+*
+*  input:
+*    set number, file(R1), file(R2) from newSampleChannel
+*  output:
+*    file "sample_x_forward_paired.trimmed.fq" into forwardTrimmed
+*    file "sample_x_reverse_paired.trimmed.fq" into reverseTrimmed
+*    val "$number" into sampleNumber
+*  script:
+*  """
+*  java -jar /Trimmomatic-0.38/trimmomatic-0.38.jar PE -threads 8 -phred33 $R1 $R2 sample_x_forward_paired.trimmed.fq output_forward_unpaired.fq sample_x_reverse_paired.trimmed.fq output_reverse_unpaired.fq SLIDINGWINDOW:4:18 MINLEN:36
+*  """
+*
+*}
+*/
 
 
 /*
