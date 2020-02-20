@@ -220,17 +220,14 @@ newSampleSheet
         saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
 
     input:
-    #file forwardTrimmed
-    #file reverseTrimmed
     set number, file(R1), file(R2) from newSampleChannel
-    #val sampleNumber
 
     output:
     file "*_fastqc.{zip,html}" into fastqc_results
 
     script:
     """
-    cat $R1 $R2 > ${sampleNumber}_merged.fastq
+    cat $R1 $R2 > ${number}_merged.fastq
     fastqc -q ${number}_merged.fastq
     """
 }
