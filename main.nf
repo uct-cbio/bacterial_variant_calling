@@ -302,9 +302,11 @@ process trim_galore {
 
     output:
     file "*fq.gz" into trimmed_reads
+    file "*fq.gz" into trimmed_reads_for_srst2
     file "*trimming_report.txt" into trimgalore_results
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
     file "where_are_my_files.txt"
+    val "$number" into sampleNumber
 
 
     script:
@@ -342,10 +344,11 @@ process srst2 {
     publishDir "${params.outdir}/srst2", mode: "copy"
 
     input:
-        set pairId, file(reads) from ReadPairsToSrst2
+        file trimmed_reads_for_srst2
+        val sampleNumber
 
     output:
-	file("${pairId}_srst2*")
+	file("${sampleNumber}_srst2*")
 
     script:
     geneDB = params.gene_db ? "--gene_db $gene_db" : ''
@@ -353,7 +356,7 @@ process srst2 {
     mlstdef = params.mlst_db ? "--mlst_definitions $mlst_definitions" : ''
     mlstdelim = params.mlst_db ? "--mlst_delimiter $params.mlst_delimiter" : ''
     """
-    srst2 --input_pe $reads --output ${pairId}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
+    srst2 --input_pe $reads --output ${sampleNumber}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
     """
 }
 
