@@ -1,0 +1,261 @@
+FROM ubuntu:xenial
+
+RUN apt-get update --fix-missing -qq && apt-get install -y -q \
+    aufs-tools \
+    automake \
+    build-essential \
+    bowtie2 \
+    cmake \
+    curl \
+    g++ \
+    locales \
+    libncurses5-dev  \
+    libncursesw5-dev \
+    libcurl4-openssl-dev \
+    libbz2-dev \
+    libx11-dev \
+    pkg-config \
+    zlib1g-dev \
+    bzip2 \
+    r-base \
+    default-jre \
+    git-core \
+    bc \
+    python3 \
+    python3-pip \
+    python-pip \
+    unzip \
+    wget \
+    xutils-dev \
+    && apt-get clean \
+    && apt-get purge
+
+
+RUN pip install --upgrade pip
+RUN pip install numpy
+
+RUN pip install scipy
+RUN pip install biopython
+RUN pip install git+https://github.com/katholt/srst2
+RUN pip install RSeQC
+RUN pip install multiqc
+
+# install Picard Tools
+RUN curl -fksSL https://github.com/broadinstitute/picard/releases/download/2.9.0/picard.jar > /usr/local/bin/picard.jar && \
+    chmod +x /usr/local/bin/picard.jar
+
+# install SAMtools
+RUN curl -fksSL https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2 | tar xj && \
+    cd samtools-1.3.1 && \
+    make all all-htslib && make install install-htslib
+
+# install VCFtools
+RUN curl -fksSL https://github.com/vcftools/vcftools/releases/download/v0.1.14/vcftools-0.1.14.tar.gz | tar xz && \
+    cd vcftools-0.1.14 && \
+    ./configure; make; make install
+
+# install STAR
+RUN curl -fksSL https://github.com/alexdobin/STAR/archive/2.5.2b.tar.gz | tar xz && \
+    cp STAR-2.5.2b/bin/Linux_x86_64/* /usr/local/bin
+
+
+# Install freebayes
+RUN git clone --recursive https://github.com/ekg/freebayes
+RUN cd freebayes && make
+
+
+# install bwe-mem
+RUN git clone https://github.com/lh3/bwa.git && cd bwa; make; cp bwa /usr/local/bin
+
+# Install BCFTools
+RUN git clone git://github.com/samtools/htslib.git; cd htslib && make && make install
+RUN git clone git://github.com/samtools/bcftools.git; cd bcftools; autoheader && autoconf && ./configure --enable-libgsl --enable-perl-filters; make
+
+
+# Install SnpEff
+RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
+
+# Install vcf2fasta
+RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
+
+# Install convbioseq
+RUN easy_install biopython
+RUN easy_install bioscripts.convert
+
+# Install RAxML
+RUN git clone https://github.com/stamatak/standard-RAxML.git && cd standard-RAxML* && \
+    make -f Makefile.AVX.gcc && \
+    rm *.o && \
+    make -f Makefile.AVX.PTHREADS.gcc
+
+# RUN pip install VCF-kit
+# RUN vk setup
+
+## Install R packages for ggplot2
+RUN R -e 'install.packages( c("reshape2","optparse", "BiocManager"), repos="http://cloud.r-project.org/");' && \
+    apt-get update && apt-get install r-cran-ggplot2 -y -q
+RUN R -e 'BiocManager::install("dupRadar");'
+
+# Install SRA toolkit
+RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.2/sratoolkit.2.9.2-ubuntu64.tar.gz" && \
+   tar -xzf sratoolkit.2.9.2-ubuntu64.tar.gz
+ENV PATH "$PATH:/sratoolkit.2.9.2-ubuntu64/bin/:/vcf2fasta/"
+
+# Install trimmomatic
+
+RUN curl -L http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip > Trimmomatic-0.38.zip && unzip Trimmomatic-0.38.zip
+
+
+
+
+################################################################################################
+# Install Jellyfish
+RUN cd /opt && \
+	wget https://github.com/gmarcais/Jellyfish/releases/download/v2.2.6/jellyfish-2.2.6.tar.gz && \
+        tar -xvf jellyfish-2.2.6.tar.gz && \
+        cd jellyfish-2.2.6 && \
+        ./configure && \
+        make -j 4 && \
+	ln -s /opt/jellyfish-2.2.6/bin/jellyfish /usr/bin && \
+	cd / && \
+	rm /opt/jellyfish-2.2.6.tar.gz
+
+
+
+# Install Java
+RUN apt-get install -y \
+	openjdk-8-jre \
+        openjdk-8-jdk
+
+
+
+
+
+# Install Figtree
+RUN cd /opt && \
+	git clone https://github.com/cdeanj/figtree.git && \
+	chmod u+x figtree/lib/figtree.jar && \
+	cd /
+
+
+# Install kSNP3 and dependencies
+RUN cd /opt && \
+	apt-get install -y tcsh && \
+	rm -rf /var/lib/apt/lists/* && \
+	cd /opt && \
+	git clone https://github.com/cdeanj/kSNP3.git && \
+	mv kSNP3 /usr/local && \
+	cd /
+
+# Install ResistomeAnalyzer
+RUN cd /opt && \
+	git clone https://github.com/cdeanj/resistomeanalyzer.git && \
+	cd resistomeanalyzer && \
+	make && \
+	ln -s /opt/resistomeanalyzer/resistome /usr/bin && \
+	cd /
+
+# Install CoverageSampler
+RUN cd /opt && \
+	git clone https://github.com/cdeanj/coverage_sampler.git && \
+	cd coverage_sampler && \
+	make && \
+	ln -s /opt/coverage_sampler/csa /usr/bin && \
+	cd /
+
+
+# CD-HIT
+RUN git clone https://github.com/weizhongli/cdhit.git && \
+cd cdhit &&\
+make MAX_SEQ=10000000 && \
+cd
+
+
+# FastQC
+ENV DST=/tmp
+ENV URL=https://github.com/agordon/libgtextutils/releases/download/0.7/
+
+RUN wget $URL/libgtextutils-0.7.tar.gz -O $DST/libgtextutils-0.7.tar.gz && \
+
+  tar -xvf $DST/libgtextutils-0.7.tar.gz -C $DST && \
+  rm $DST/libgtextutils-0.7.tar.gz && \
+  cd $DST/libgtextutils-0.7 && \
+  ./configure && \
+  make && \
+  make install && \
+  cd / && \
+rm -rf $DST/libgtextutils-0.7
+
+ENV URL=https://github.com/agordon/fastx_toolkit/releases/download/0.0.14/
+
+# FastXtools
+RUN wget $URL/fastx_toolkit-0.0.14.tar.bz2 -O $DST/fastx_toolkit-0.0.14.tar.bz2 && \
+
+  tar -xvf $DST/fastx_toolkit-0.0.14.tar.bz2 -C $DST && \
+  rm $DST/fastx_toolkit-0.0.14.tar.bz2 && \
+  cd $DST/fastx_toolkit-0.0.14 && \
+  ./configure && \
+  make && \
+  make install && \
+  cd / && \
+  rm -rf $DST/fastx_toolkit-0.0.14
+
+RUN ldconfig
+
+# FASTQC
+ENV URL=http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+ENV ZIP=fastqc_v0.11.5.zip
+
+RUN wget $URL/$ZIP -O $DST/$ZIP && \
+
+  unzip - $DST/$ZIP -d $DST && \
+  rm $DST/$ZIP && \
+  cd $DST/FastQC && \
+  chmod 755 fastqc && \
+  ln -s $DST/FastQC/fastqc /usr/local/bin/fastqc
+
+
+# trim_galore: wrapper around cutadapt and fastqc
+# https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
+
+# Install cutadapt
+ENV CUTADAPT_VERSION 1.14
+RUN pip3 install cutadapt==${CUTADAPT_VERSION}
+
+# Install trim_galore
+ENV DEST_DIR /opt/
+ENV TRIM_GALORE_VERSION 0.4.4
+ENV TRIM_GALORE_URL http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
+ENV TRIM_GALORE_RELEASE trim_galore_v${TRIM_GALORE_VERSION}.zip
+
+# Make destination directory
+RUN mkdir -p $DEST_DIR
+
+WORKDIR /tmp
+
+# download and extract binaries
+# Do this in one command to avoid caching the zip file and its removal in separate layers
+RUN curl -SLO ${TRIM_GALORE_URL}/${TRIM_GALORE_RELEASE} && unzip ${TRIM_GALORE_RELEASE} -d ${DEST_DIR} && rm ${TRIM_GALORE_RELEASE}
+
+# Link executable to /usr/local/bin
+RUN ln -s /opt/trim_galore /usr/local/bin/trim_galore
+
+
+# preseq
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+  libgsl2 \
+  gsl-bin
+
+# Download pre-compiled preseq into /opt/
+ENV PRESEQ_RELEASE=2.0
+ENV PRESEQ_URL=http://smithlabresearch.org/downloads/preseq_linux_v${PRESEQ_RELEASE}.tar.bz2
+ENV DEST_DIR=/opt/
+
+# Download preseq; untar & decompress; remove tr.bz2 file
+RUN curl -SLo ${DEST_DIR}/preseq_v${PRESEQ_RELEASE}.tar.bz2 ${PRESEQ_URL} && \
+  tar -xf ${DEST_DIR}/preseq_v${PRESEQ_RELEASE}.tar.bz2 -C ${DEST_DIR} && \
+  rm -f ${DEST_DIR}/preseq_v${PRESEQ_RELEASE}.tar.bz2
+
+# Add preseq to the PATH
+ENV PATH=${DEST_DIR}/preseq_v${PRESEQ_RELEASE}:$PATH

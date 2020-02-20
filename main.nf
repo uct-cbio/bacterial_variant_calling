@@ -1,3 +1,13 @@
+#!/usr/bin/env nextflow
+
+/*
+========================================================================================
+                         nf-core/rnaseq
+========================================================================================
+ nf-core Analysis Pipeline.
+ #### Homepage / Documentation
+ TBD
+----------------------------------------------------------------------------------------
 
 
 def helpMessage() {
@@ -198,6 +208,34 @@ newSampleSheet
   .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannel }
 
+
+
+/*
+ * Process 1F: FastQC -  NEED TO EDIT
+ */
+
+ process fastqc {
+    tag "$name"
+    publishDir "${params.outdir}/fastqc", mode: 'copy',
+        saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
+
+    input:
+    file forwardTrimmed
+    file reverseTrimmed
+    val sampleNumber
+
+    output:
+    file "*_fastqc.{zip,html}" into fastqc_results
+
+    script:
+    """
+    cat $forwardTrimmed $reverseTrimmed > ${sampleNumber}_merged.fastq
+    fastqc -q ${sampleNumber}_merged.fastq
+    """
+}
+
+
+
 process '1E_trim_samples' {
 
   input:
@@ -215,6 +253,49 @@ process '1E_trim_samples' {
 
 
 
+/*
+ * STEP 2 - Trim Galore! -- TO REPLACE Trimmomatic
+ */
+process trim_galore {
+    label 'low_memory'
+    tag "$name"
+    publishDir "${params.outdir}/trim_galore", mode: 'copy',
+        saveAs: {filename ->
+            if (filename.indexOf("_fastqc") > 0) "FastQC/$filename"
+            else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
+            else if (!params.saveTrimmed && filename == "where_are_my_files.txt") filename
+            else if (params.saveTrimmed && filename != "where_are_my_files.txt") filename
+            else null
+        }
+
+    input:
+    set val(name), file(reads) from raw_reads_trimgalore
+    file wherearemyfiles from ch_where_trim_galore.collect()
+
+    output:
+    file "*fq.gz" into trimmed_reads
+    file "*trimming_report.txt" into trimgalore_results
+    file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
+    file "where_are_my_files.txt"
+
+
+    script:
+    c_r1 = clip_r1 > 0 ? "--clip_r1 ${clip_r1}" : ''
+    c_r2 = clip_r2 > 0 ? "--clip_r2 ${clip_r2}" : ''
+    tpc_r1 = three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${three_prime_clip_r1}" : ''
+    tpc_r2 = three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${three_prime_clip_r2}" : ''
+    if (params.singleEnd) {
+        """
+        trim_galore --fastqc --gzip $c_r1 $tpc_r1 $reads
+        """
+    } else {
+        """
+        trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
+        """
+    }
+}
+
+
 
 /*
  *  END OF PART 1
@@ -222,15 +303,40 @@ process '1E_trim_samples' {
 
 
 
+/*
+ *
+ * Step 1: srst2 (run per sample)  -- edit needed
+ * https://github.com/kviljoen/uct-srst2/blob/master/main.nf
+ */
+
+process srst2 {
+    tag { "srst2.${pairId}" }
+    publishDir "${params.outdir}/srst2", mode: "copy"
+
+    input:
+        set pairId, file(reads) from ReadPairsToSrst2
+
+    output:
+	file("${pairId}_srst2*")
+
+    script:
+    geneDB = params.gene_db ? "--gene_db $gene_db" : ''
+    mlstDB = params.mlst_db ? "--mlst_db $mlst_db" : ''
+    mlstdef = params.mlst_db ? "--mlst_definitions $mlst_definitions" : ''
+    mlstdelim = params.mlst_db ? "--mlst_delimiter $params.mlst_delimiter" : ''
+    """
+    srst2 --input_pe $reads --output ${pairId}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
+    """
+}
+
+
+
+
+
 /**********
  * PART 2: Mapping
  *
- * Process 2A: Align reads to the genome
- */
-
-
-/*
- * Process 2A: Map the reads to the reference genome
+ * Process 2A: Align reads to the reference genome
  */
 
 process '2A_read_mapping' {
@@ -250,6 +356,7 @@ process '2A_read_mapping' {
   if( aligner == 'bwa-mem' )
     """
     bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}_sorted.bam
+    samtools index sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_sorted.bai
     """
   
   else
@@ -257,8 +364,89 @@ process '2A_read_mapping' {
     
 }
 
+
+
 /*
- * Process 2B: Mark duplicate reads
+ * STEP 4 - RSeQC analysis -- EDIT NEEDED
+ */
+process rseqc {
+    label 'high_memory'
+    tag "${bam_rseqc.baseName - '.sorted'}"
+    publishDir "${params.outdir}/rseqc" , mode: 'copy',
+        saveAs: {filename ->
+                 if (filename.indexOf("bam_stat.txt") > 0)                      "bam_stat/$filename"
+            else if (filename.indexOf("infer_experiment.txt") > 0)              "infer_experiment/$filename"
+            else if (filename.indexOf("read_distribution.txt") > 0)             "read_distribution/$filename"
+            else if (filename.indexOf("read_duplication.DupRate_plot.pdf") > 0) "read_duplication/$filename"
+            else if (filename.indexOf("read_duplication.DupRate_plot.r") > 0)   "read_duplication/rscripts/$filename"
+            else if (filename.indexOf("read_duplication.pos.DupRate.xls") > 0)  "read_duplication/dup_pos/$filename"
+            else if (filename.indexOf("read_duplication.seq.DupRate.xls") > 0)  "read_duplication/dup_seq/$filename"
+            else if (filename.indexOf("RPKM_saturation.eRPKM.xls") > 0)         "RPKM_saturation/rpkm/$filename"
+            else if (filename.indexOf("RPKM_saturation.rawCount.xls") > 0)      "RPKM_saturation/counts/$filename"
+            else if (filename.indexOf("RPKM_saturation.saturation.pdf") > 0)    "RPKM_saturation/$filename"
+            else if (filename.indexOf("RPKM_saturation.saturation.r") > 0)      "RPKM_saturation/rscripts/$filename"
+            else if (filename.indexOf("inner_distance.txt") > 0)                "inner_distance/$filename"
+            else if (filename.indexOf("inner_distance_freq.txt") > 0)           "inner_distance/data/$filename"
+            else if (filename.indexOf("inner_distance_plot.r") > 0)             "inner_distance/rscripts/$filename"
+            else if (filename.indexOf("inner_distance_plot.pdf") > 0)           "inner_distance/plots/$filename"
+            else if (filename.indexOf("junction_plot.r") > 0)                   "junction_annotation/rscripts/$filename"
+            else if (filename.indexOf("junction.xls") > 0)                      "junction_annotation/data/$filename"
+            else if (filename.indexOf("splice_events.pdf") > 0)                 "junction_annotation/events/$filename"
+            else if (filename.indexOf("splice_junction.pdf") > 0)               "junction_annotation/junctions/$filename"
+            else if (filename.indexOf("junctionSaturation_plot.pdf") > 0)       "junction_saturation/$filename"
+            else if (filename.indexOf("junctionSaturation_plot.r") > 0)         "junction_saturation/rscripts/$filename"
+            else filename
+        }
+
+    when:
+    !params.skip_qc && !params.skip_rseqc
+
+    input:
+    file bam_rseqc
+    file index from bam_index_rseqc
+    file bed12 from bed_rseqc.collect()
+
+    output:
+    file "*.{txt,pdf,r,xls}" into rseqc_results
+
+    script:
+    """
+    infer_experiment.py -i $bam_rseqc -r $bed12 > ${bam_rseqc.baseName}.infer_experiment.txt
+    junction_annotation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
+    bam_stat.py -i $bam_rseqc 2> ${bam_rseqc.baseName}.bam_stat.txt
+    junction_saturation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12 2> ${bam_rseqc.baseName}.junction_annotation_log.txt
+    inner_distance.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
+    read_distribution.py -i $bam_rseqc -r $bed12 > ${bam_rseqc.baseName}.read_distribution.txt
+    read_duplication.py -i $bam_rseqc -o ${bam_rseqc.baseName}.read_duplication
+    """
+}
+
+/*
+ * STEP 5 - preseq analysis EDIT NEEDED
+ */
+process preseq {
+    tag "${bam_preseq.baseName - '.sorted'}"
+    publishDir "${params.outdir}/preseq", mode: 'copy'
+
+    when:
+    !params.skip_qc && !params.skip_preseq
+
+    input:
+    file bam_preseq
+
+    output:
+    file "${bam_preseq.baseName}.ccurve.txt" into preseq_results
+
+    script:
+    """
+    preseq lc_extrap -v -B $bam_preseq -o ${bam_preseq.baseName}.ccurve.txt
+    """
+}
+
+
+
+/*
+ * Process 2B: Mark duplicate reads - EDIT for QC
  */
 
 process '2B_mark_duplicates' {
@@ -278,9 +466,231 @@ process '2B_mark_duplicates' {
 }
 
 
+
+/*
+ * STEP 7 - dupRadar - NEED TO EDIT
+ */
+process dupradar {
+    label 'low_memory'
+    tag "${bam_md.baseName - '.sorted.markDups'}"
+    publishDir "${params.outdir}/dupradar", mode: 'copy',
+        saveAs: {filename ->
+            if (filename.indexOf("_duprateExpDens.pdf") > 0) "scatter_plots/$filename"
+            else if (filename.indexOf("_duprateExpBoxplot.pdf") > 0) "box_plots/$filename"
+            else if (filename.indexOf("_expressionHist.pdf") > 0) "histograms/$filename"
+            else if (filename.indexOf("_dupMatrix.txt") > 0) "gene_data/$filename"
+            else if (filename.indexOf("_duprateExpDensCurve.txt") > 0) "scatter_curve_data/$filename"
+            else if (filename.indexOf("_intercept_slope.txt") > 0) "intercepts_slopes/$filename"
+            else "$filename"
+        }
+
+    when:
+    !params.skip_qc && !params.skip_dupradar
+
+    input:
+    file bam_md
+    file gtf from gtf_dupradar.collect()
+
+    output:
+    file "*.{pdf,txt}" into dupradar_results
+
+    script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
+    def dupradar_direction = 0
+    if (forward_stranded && !unstranded) {
+        dupradar_direction = 1
+    } else if (reverse_stranded && !unstranded){
+        dupradar_direction = 2
+    }
+    def paired = params.singleEnd ? 'single' :  'paired'
+    """
+    dupRadar.r $bam_md $gtf $dupradar_direction $paired ${task.cpus}
+    """
+}
+
+
+
+
 /*
  *  END OF PART 2
  *********/
+
+
+/*
+ *  Virulence DB stuff
+ *********/
+
+
+if( params.amr_db ) {
+	/*
+	 * Build resistance database index with Bowtie2
+	 */
+	process BuildAMRIndex {
+		tag { "${amr_db.baseName}" }
+
+		input:
+        	file amr_db
+
+        	output:
+        	file 'amr.index*' into amr_index
+
+        	"""
+        	bowtie2-build $amr_db amr.index --threads ${threads}
+		"""
+	}
+
+	/*
+         * Align reads to resistance database with Bowtie2
+         */
+	process AMRAlignment {
+        	publishDir "${params.out_dir}/Alignment", pattern: "*.bam"
+
+        	tag { dataset_id }
+
+        	input:
+        	set dataset_id, file(forward), file(reverse) from amr_read_pairs
+        	file index from amr_index.first()
+
+        	output:
+        	set dataset_id, file("${dataset_id}_amr_alignment.sam") into amr_sam_files
+        	set dataset_id, file("${dataset_id}_amr_alignment.bam") into amr_bam_files
+
+        	"""
+        	bowtie2 -p ${threads} -x amr.index -1 $forward -2 $reverse -S ${dataset_id}_amr_alignment.sam
+        	samtools view -bS ${dataset_id}_amr_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_amr_alignment.bam
+        	"""
+	}
+
+	process AMRResistome {
+        	publishDir "${params.out_dir}/Resistome"
+
+        	tag { dataset_id }
+
+        	input:
+        	file amr_db
+        	set dataset_id, file(amr_sam) from amr_sam_files
+
+        	output:
+        	set dataset_id, file("${dataset_id}_amr_gene_resistome.tsv") into amr_gene_level
+
+        	"""
+		csa -ref_fp ${vf_db} -sam_fp ${vf_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_amr_gene_resistome.tsv"
+        	"""
+	}
+}
+
+if( params.vf_db ) {
+	/*
+         * Build resistance database index with Bowtie2
+         */
+	process BuildVFIndex {
+		tag { "${vf_db.baseName}" }
+
+		input:
+        	file vf_db
+
+        	output:
+        	file 'vf.index*' into vf_index
+
+        	"""
+        	bowtie2-build $vf_db vf.index --threads ${threads}
+		"""
+	}
+	/*
+         * Align reads to virulence factor database with Bowtie2
+         */
+	process VFAlignment {
+        	publishDir "${params.out_dir}/Alignment", pattern: "*.bam"
+
+        	tag { dataset_id }
+
+        	input:
+        	set dataset_id, file(forward), file(reverse) from vf_read_pairs
+        	file index from vf_index.first()
+
+        	output:
+        	set dataset_id, file("${dataset_id}_vf_alignment.sam") into vf_sam_files
+        	set dataset_id, file("${dataset_id}_vf_alignment.bam") into vf_bam_files
+
+        	"""
+        	bowtie2 -p ${threads} -x vf.index -1 $forward -2 $reverse -S ${dataset_id}_vf_alignment.sam
+        	samtools view -bS ${dataset_id}_vf_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_vf_alignment.bam
+        	"""
+	}
+
+	process VFResistome {
+        	publishDir "${params.out_dir}/Resistome"
+
+        	tag { dataset_id }
+
+        	input:
+        	file vf_db
+        	set dataset_id, file(vf_sam) from vf_sam_files
+
+        	output:
+        	set dataset_id, file("${dataset_id}_vf_gene_resistome.tsv") into vf_gene_level
+
+        	"""
+        	csa -ref_fp ${vf_db} -sam_fp ${vf_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_vf_gene_resistome.tsv"
+        	"""
+	}
+}
+
+if( params.plasmid_db ) {
+	/*
+         * Build plasmid index with Bowtie2
+         */
+	process BuildPlasmidIndex {
+		tag { "${plasmid_db.baseName}" }
+
+		input:
+        	file plasmid_db
+
+        	output:
+        	file 'plasmid.index*' into plasmid_index
+
+        	"""
+        	bowtie2-build $plasmid_db plasmid.index --threads ${threads}
+		"""
+	}
+	/*
+         * Align reads to plasmid database with Bowtie2
+         */
+	process PlasmidAlignment {
+        	publishDir "${params.out_dir}/Alignment", pattern: "*.bam"
+
+        	tag { dataset_id }
+
+        	input:
+        	set dataset_id, file(forward), file(reverse) from plasmid_read_pairs
+        	file index from plasmid_index.first()
+
+        	output:
+        	set dataset_id, file("${dataset_id}_plasmid_alignment.sam") into plasmid_sam_files
+        	set dataset_id, file("${dataset_id}_plasmid_alignment.bam") into plasmid_bam_files
+
+        	"""
+        	bowtie2 -p ${threads} -x plasmid.index -1 $forward -2 $reverse -S ${dataset_id}_plasmid_alignment.sam
+        	samtools view -bS ${dataset_id}_plasmid_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_plasmid_alignment.bam
+        	"""
+	}
+
+	process PlasmidResistome {
+        	publishDir "${params.out_dir}/Resistome"
+
+        	tag { dataset_id }
+
+        	input:
+        	file plasmid_db
+        	set dataset_id, file(plasmid_sam) from plasmid_sam_files
+
+        	output:
+        	set dataset_id, file("${dataset_id}_plasmid_gene_resistome.tsv") into plasmid_gene_level
+
+        	"""
+        	csa -ref_fp ${plasmid_db} -sam_fp ${plasmid_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_plasmid_gene_resistome.tsv"
+        	"""
+	}
+}
 
 
 
@@ -362,6 +772,32 @@ process '3D_split_vcf_indel_snps' {
 }
 
 /*
+ * Integrate SNPs into reference genome with BCFtools
+ */
+process BuildConesnsusSequence {
+	tag { dataset_id }
+
+	publishDir "${params.out_dir}/Consensus"
+
+	input:
+	file snp_vcf_file from snp_vcfs
+	file genome
+
+	output:
+	file("${dataset_id}_consensus.fa") into consensus_files
+	file("${dataset_id}_in_list.txt") into ksnp3_configuration
+
+	"""
+	bgzip -c $snp_vcf_file
+	tabix ${dataset_id}_genome_variants.vcf.gz
+	cat $genome | bcftools consensus ${dataset_id}_genome_variants.vcf.gz > ${dataset_id}_consensus.fa
+	echo -e "$params.out_dir/Consensus/${dataset_id}_consensus.fa\t$dataset_id" >> ${dataset_id}_in_list.txt
+	"""
+}
+
+
+
+/*
  *  END OF PART 3
  *********/
 
@@ -431,6 +867,99 @@ process '4D_run_RAxML' {
   """
 }
 
+
+if( params.draft ) {
+	/*
+	 * Create configuration file for kSNP3 using the draft assemblies and user-input reference genome
+	 */
+	process kSNPDraftAndGenomeConfiguration {
+		echo true
+
+		input:
+                file draft from draft_genomes
+
+                output:
+                file("genome_paths.txt") into genome_config
+
+                shell:
+                '''
+                #!/bin/sh
+                echo "!{genome}\t!{genome.baseName}" > genome_paths.txt
+                for d in !{draft};
+                do
+                        echo "!{draft_path}/${d}\t${d%.*}" >> genome_paths.txt
+                done
+                '''
+	}
+}
+
+else {
+	/*
+	 * Create configuration file for kSNP3 using the user-input reference genome
+	 */
+	process kSNPGenomeConfiguration {
+		echo true
+
+		storeDir 'temporary_files'
+
+		input:
+		file genome
+
+		output:
+		file("genome_paths.txt") into genome_config
+		file("$genome") into kchooser_genome
+
+		shell:
+		'''
+		#!/bin/sh
+		base=`echo !{genome} | cut -f1 -d '.'`
+		fp=`readlink !{genome}`
+		echo "${fp}\t${base}" > genome_paths.txt
+		'''
+	}
+}
+
+
 /*
  *  END OF PART 4
  *********/
+
+
+
+/*
+ * STEP 12 MultiQC - EDIT NEEDED
+ */
+process multiqc {
+    publishDir "${params.outdir}/MultiQC", mode: 'copy'
+
+    when:
+    !params.skip_multiqc
+
+    input:
+    file multiqc_config from ch_multiqc_config
+    file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
+    file ('trimgalore/*') from trimgalore_results.collect()
+    file ('alignment/*') from alignment_logs.collect()
+    file ('rseqc/*') from rseqc_results.collect().ifEmpty([])
+    file ('rseqc/*') from genebody_coverage_results.collect().ifEmpty([])
+    file ('preseq/*') from preseq_results.collect().ifEmpty([])
+    file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
+    file ('featureCounts/*') from featureCounts_logs.collect()
+    file ('featureCounts_biotype/*') from featureCounts_biotype.collect()
+    file ('stringtie/stringtie_log*') from stringtie_log.collect()
+    file ('sample_correlation_results/*') from sample_correlation_results.collect().ifEmpty([]) // If the Edge-R is not run create an Empty array
+    file ('software_versions/*') from software_versions_yaml
+    file workflow_summary from create_workflow_summary(summary)
+
+    output:
+    file "*multiqc_report.html" into multiqc_report
+    file "*_data"
+
+    script:
+    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
+    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
+    """
+    multiqc . -f $rtitle $rfilename --config $multiqc_config \\
+        -m custom_content -m picard -m preseq -m rseqc -m featureCounts -m hisat2 -m star -m cutadapt -m fastqc
+    """
+}
