@@ -351,7 +351,7 @@ process '1D_prepare_samples' {
       file samples from sample_sheet
   output:
       file "sample_sheet_new.csv" into newSampleSheet
-      file "*.fastq" into SRA_new_reads
+      file "*.fastq" optional true into SRA_new_reads
   script:
   """
   python3 /vcf2fasta/process_samples.py -i $samples -f $params.SRAdir/
