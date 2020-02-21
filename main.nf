@@ -464,6 +464,8 @@ process '2A_read_mapping' {
     file "sample_${sampleNumber}_sorted.bam" into bam_rseqc
     file "sample_${sampleNumber}_sorted.bai" into bamindexfiles_rseqc
     file "sample_${sampleNumber}_sorted.bam" into bam_preseq
+    file "sample_${sampleNumber}_sorted.bam" into bam_forSubsamp
+    file "sample_${sampleNumber}_sorted.bam" into bam_skipSubsamp
     file "*.out" into alignment_logs
   script:
   if( aligner == 'bwa-mem' )
@@ -533,6 +535,74 @@ process rseqc {
     read_duplication.py -i $bam_rseqc -o ${bam_rseqc.baseName}.read_duplication
     """
 }
+
+
+/*
+ * Step 4.1 Subsample the BAM files if necessary
+ */
+bam_forSubsamp
+    .filter { it.size() > params.subsampFilesizeThreshold }
+    .map { [it, params.subsampFilesizeThreshold / it.size() ] }
+    .set{ bam_forSubsampFiltered }
+bam_skipSubsamp
+    .filter { it.size() <= params.subsampFilesizeThreshold }
+    .set{ bam_skipSubsampFiltered }
+
+process bam_subsample {
+    tag "${bam.baseName - '.sorted'}"
+
+    input:
+    set file(bam), val(fraction) from bam_forSubsampFiltered
+
+    output:
+    file "*_subsamp.bam" into bam_subsampled
+
+    script:
+    """
+    samtools view -s $fraction -b $bam | samtools sort -o ${bam.baseName}_subsamp.bam
+    """
+}
+
+
+/*
+ * Step 4.2 Rseqc genebody_coverage -- edit needed
+ */
+process genebody_coverage {
+    label 'mid_memory'
+    tag "${bam.baseName - '.sorted'}"
+       publishDir "${params.outdir}/rseqc" , mode: 'copy',
+        saveAs: {filename ->
+            if (filename.indexOf("geneBodyCoverage.curves.pdf") > 0)       "geneBodyCoverage/$filename"
+            else if (filename.indexOf("geneBodyCoverage.r") > 0)           "geneBodyCoverage/rscripts/$filename"
+            else if (filename.indexOf("geneBodyCoverage.txt") > 0)         "geneBodyCoverage/data/$filename"
+            else if (filename.indexOf("log.txt") > -1) false
+            else filename
+        }
+
+    when:
+    !params.skip_qc && !params.skip_genebody_coverage
+
+    input:
+    file bam from bam_subsampled.concat(bam_skipSubsampFiltered)
+    file bed12 from bed_genebody_coverage.collect()
+
+    output:
+    file "*.{txt,pdf,r}" into genebody_coverage_results
+
+    script:
+    """
+    samtools index $bam
+    geneBody_coverage.py \\
+        -i $bam \\
+        -o ${bam.baseName}.rseqc \\
+        -r $bed12
+    mv log.txt ${bam.baseName}.rseqc.log.txt
+    """
+}
+
+
+
+
 
 /*
  * STEP 5 - preseq analysis EDIT NEEDED
