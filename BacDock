@@ -259,3 +259,7 @@ RUN curl -SLo ${DEST_DIR}/preseq_v${PRESEQ_RELEASE}.tar.bz2 ${PRESEQ_URL} && \
 
 # Add preseq to the PATH
 ENV PATH=${DEST_DIR}/preseq_v${PRESEQ_RELEASE}:$PATH
+
+
+# To build sing image
+#docker run -v /var/run/docker.sock:/var/run/docker.sock -v /Volumes/External/bac_genomics:/output --privileged -t --rm singularityware/docker2singularity:v2.6 -m "/shared_fs /custom_mountpoint2" bacterial_genomics:latest
