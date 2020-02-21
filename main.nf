@@ -175,6 +175,14 @@ variant_caller  = params.variant_caller
 vcf_qual_cutoff = params.vcf_qual_cutoff
 
 
+// Header log info
+log.info nfcoreHeader()
+def summary = [:]
+if(workflow.revision) summary['Pipeline Release'] = workflow.revision
+summary['Run Name']         = custom_runName ?: workflow.runName
+summary['Reads']            = params.reads
+summary['Data Type']        = params.singleEnd ? 'Single-End' : 'Paired-End'
+
 
 /*
  * PREPROCESSING - Convert GFF3 to GTF
