@@ -1011,7 +1011,7 @@ else {
 		storeDir 'temporary_files'
 
 		input:
-		file genome
+		file genome from genome_file
 
 		output:
 		file("genome_paths.txt") into genome_config
