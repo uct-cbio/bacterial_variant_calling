@@ -559,6 +559,9 @@ process '2B_mark_duplicates' {
   output:
     file "${sample_bam.baseName}_dedup.bam" into dedup_bamfiles
     file "${sample_bam.baseName}.txt" into dedup_logs
+    file "${bam.baseName}.markDups.bam" into bam_md
+    file "${bam.baseName}.markDups_metrics.txt" into picard_results
+    file "${bam.baseName}.markDups.bam.bai"
   script:
     """
     PICARD=`which picard.jar` 
