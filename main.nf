@@ -888,7 +888,7 @@ process BuildConesnsusSequence {
 
 	input:
 	file snp_vcf_file from snp_vcfs
-	file genome
+	file genome from genome_file
 
 	output:
 	file("${dataset_id}_consensus.fa") into consensus_files
