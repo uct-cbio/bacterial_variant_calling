@@ -464,6 +464,7 @@ process '2A_read_mapping' {
     file "sample_${sampleNumber}_sorted.bam" into bam_rseqc
     file "sample_${sampleNumber}_sorted.bai" into bamindexfiles_rseqc
     file "sample_${sampleNumber}_sorted.bam" into bam_preseq
+    file "*.out" into alignment_logs
   script:
   if( aligner == 'bwa-mem' )
     """
@@ -1062,8 +1063,6 @@ process multiqc {
     file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
     file ('featureCounts/*') from featureCounts_logs.collect()
     file ('featureCounts_biotype/*') from featureCounts_biotype.collect()
-    file ('stringtie/stringtie_log*') from stringtie_log.collect()
-    file ('sample_correlation_results/*') from sample_correlation_results.collect().ifEmpty([]) // If the Edge-R is not run create an Empty array
     file ('software_versions/*') from software_versions_yaml
     file workflow_summary from create_workflow_summary(summary)
 
