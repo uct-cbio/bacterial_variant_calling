@@ -438,35 +438,35 @@ process srst2 {
  */
 
 
-if(params.aligner == 'bwa'){
-    process '2A_read_mapping' {
-      input:
-        file forwardTrimmed
-        file reverseTrimmed
-        val sampleNumber
-        file genome from genome_file
-        file genome_bwa_amb
-        file genome_bwa_ann
-        file genome_bwa_bwt
-        file genome_bwa_pac
-        file genome_bwa_sa
-      output:
-        file "sample_${sampleNumber}_sorted.bam" into bamfiles
-        file "sample_${sampleNumber}_sorted.bai" into bamindexfiles
-        file "sample_${sampleNumber}_sorted.bam" into bam_rseqc
-        file "sample_${sampleNumber}_sorted.bai" into bamindexfiles_rseqc
-      script:
-      if( aligner == 'bwa-mem' )
-        """
-        bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}_sorted.bam
-        samtools index sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_sorted.bai
-        """
 
-      else
-        error "Invalid aligner: ${aligner}"
+process '2A_read_mapping' {
+  input:
+    file forwardTrimmed
+    file reverseTrimmed
+    val sampleNumber
+    file genome from genome_file
+    file genome_bwa_amb
+    file genome_bwa_ann
+    file genome_bwa_bwt
+    file genome_bwa_pac
+    file genome_bwa_sa
+  output:
+    file "sample_${sampleNumber}_sorted.bam" into bamfiles
+    file "sample_${sampleNumber}_sorted.bai" into bamindexfiles
+    file "sample_${sampleNumber}_sorted.bam" into bam_rseqc
+    file "sample_${sampleNumber}_sorted.bai" into bamindexfiles_rseqc
+  script:
+  if( aligner == 'bwa-mem' )
+    """
+    bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}_sorted.bam
+    samtools index sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_sorted.bai
+    """
 
-    }
+  else
+    error "Invalid aligner: ${aligner}"
+
 }
+
 
 
 /*
