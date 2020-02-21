@@ -67,6 +67,11 @@ params.project = false
 params.email = false
 params.plaintext_email = false
 
+
+
+Channel.fromPath("$baseDir/assets/where_are_my_files.txt")
+       .into{ch_where_trim_galore; ch_where_star; ch_where_hisat2; ch_where_hisat2_sort}
+
 // Stage config files
 ch_multiqc_config = Channel.fromPath(params.multiqc_config)
 ch_output_docs = Channel.fromPath("$baseDir/docs/output.md")
