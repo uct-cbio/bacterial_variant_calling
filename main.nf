@@ -67,6 +67,9 @@ params.project = false
 params.email = false
 params.plaintext_email = false
 
+// Stage config files
+ch_multiqc_config = Channel.fromPath(params.multiqc_config)
+ch_output_docs = Channel.fromPath("$baseDir/docs/output.md")
 
 // Show help message
 params.help = false
