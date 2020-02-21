@@ -870,6 +870,7 @@ process '3D_split_vcf_indel_snps' {
   output:
     file "${f_vcf.baseName}_filtered_indels.recode.vcf" into indel_vcfs
     file "${f_vcf.baseName}_filtered_snps.recode.vcf" into snp_vcfs
+    file "${f_vcf.baseName}_filtered_snps.recode.vcf" into snp_vcfs_bgzip
   script:
   """
   vcftools --vcf $f_vcf --keep-only-indels --recode --recode-INFO-all --out ${f_vcf.baseName}_filtered_indels
@@ -919,7 +920,7 @@ process BuildConesnsusSequence {
 
 process '4A_bgzip_vcf' {
   input:
-    file vcf from snp_vcfs
+    file vcf from snp_vcfs_bgzip
   output:
     file "${vcf}.gz" into gz_vcfs
     file "${vcf}.gz.tbi" into tbi_vcfs
