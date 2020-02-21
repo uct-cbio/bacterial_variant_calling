@@ -455,6 +455,7 @@ process '2A_read_mapping' {
     file "sample_${sampleNumber}_sorted.bai" into bamindexfiles
     file "sample_${sampleNumber}_sorted.bam" into bam_rseqc
     file "sample_${sampleNumber}_sorted.bai" into bamindexfiles_rseqc
+    file "sample_${sampleNumber}_sorted.bam" into bam_preseq
   script:
   if( aligner == 'bwa-mem' )
     """
