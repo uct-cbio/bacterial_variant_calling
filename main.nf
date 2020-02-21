@@ -221,6 +221,34 @@ if(!params.bed12){
 
 
 
+/*
+ * Parse software version numbers
+ */
+process get_software_versions {
+
+    output:
+    file 'software_versions_mqc.yaml' into software_versions_yaml
+
+    script:
+    """
+    echo $workflow.manifest.version &> v_ngi_rnaseq.txt
+    echo $workflow.nextflow.version &> v_nextflow.txt
+    fastqc --version &> v_fastqc.txt
+    cutadapt --version &> v_cutadapt.txt
+    trim_galore --version &> v_trim_galore.txt
+    bwa --version &> v_bwa.txt
+    preseq &> v_preseq.txt
+    read_duplication.py --version &> v_rseqc.txt
+    echo \$(bamCoverage --version 2>&1) > v_deeptools.txt
+    featureCounts -v &> v_featurecounts.txt
+    picard MarkDuplicates --version &> v_markduplicates.txt  || true
+    samtools --version &> v_samtools.txt
+    multiqc --version &> v_multiqc.txt
+    scrape_software_versions.py &> software_versions_mqc.yaml
+    """
+}
+
+
 /**********
  * PART 1: Data preparation
  *
