@@ -11,6 +11,7 @@
 
 
 def helpMessage() {
+    log.info nfcoreHeader()
     log.info"""
     =========================================
 
