@@ -386,8 +386,8 @@ newSampleSheet
 
     script:
     """
-    cat $R1 $R2 > ${number}_merged.fastq
-    fastqc -q ${number}_merged.fastq
+    fastqc -q $R1
+    fastqc -q $R2
     """
 }
 
