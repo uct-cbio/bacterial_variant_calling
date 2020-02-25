@@ -217,7 +217,7 @@ RUN curl -SLO ${TRIM_GALORE_URL}/${TRIM_GALORE_RELEASE} && unzip ${TRIM_GALORE_R
 # Link executable to /usr/local/bin
 RUN ln -s /opt/trim_galore /usr/local/bin/trim_galore
 
-
+WORKDIR /
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
@@ -255,7 +255,8 @@ RUN conda install -c bioconda snpeff
 
 # Install vcf2fasta
 RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
-
+RUN ln -s /vcf2fasta/vcf2fasta.py /usr/local/bin/vcf2fasta.py
+RUN ln -s /vcf2fasta/process_samples.py /usr/local/bin/process_samples.py
 
 # To build sing image
 #docker run -v /var/run/docker.sock:/var/run/docker.sock -v /Volumes/External/bac_genomics:/output --privileged -t --rm singularityware/docker2singularity:v2.6 -m "/shared_fs /custom_mountpoint2" bacterial_genomics:latest
