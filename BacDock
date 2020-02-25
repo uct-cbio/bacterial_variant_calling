@@ -8,6 +8,8 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     cmake \
     curl \
     g++ \
+    openjdk-8-jre \
+    openjdk-8-jdk \
     locales \
     libncurses5-dev  \
     libncursesw5-dev \
@@ -73,10 +75,7 @@ RUN git clone git://github.com/samtools/bcftools.git; cd bcftools; autoheader &&
 
 
 # Install SnpEff
-RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
-
-# Install vcf2fasta
-RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
+#RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
 
 # Install convbioseq
 RUN easy_install biopython
@@ -119,15 +118,6 @@ RUN cd /opt && \
 	ln -s /opt/jellyfish-2.2.6/bin/jellyfish /usr/bin && \
 	cd / && \
 	rm /opt/jellyfish-2.2.6.tar.gz
-
-
-
-# Install Java
-RUN apt-get install -y \
-	openjdk-8-jre \
-        openjdk-8-jdk
-
-
 
 
 
@@ -259,8 +249,12 @@ RUN conda install -c bioconda conda-forge::r-gplots=3.0.1.1
 RUN conda install -c bioconda conda-forge::r-markdown=0.9
 RUN conda install -c bioconda csvtk=0.17.0
 RUN conda install -c conda-forge gsl
+RUN conda install -c bioconda snpeff
+
 #RUN conda install -c bioconda preseq
 
+# Install vcf2fasta
+RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
 
 
 # To build sing image

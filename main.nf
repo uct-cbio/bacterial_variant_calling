@@ -353,7 +353,8 @@ process '1D_prepare_samples' {
       file "*.fastq" optional true into SRA_new_reads
   script:
   """
-  python3 /vcf2fasta/process_samples.py -i $samples -f $params.SRAdir/
+  echo $params.SRAdir
+  python3 /vcf2fasta/process_samples.py -i $samples -f $params.SRAdir
   """
 }
 
