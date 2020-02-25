@@ -270,7 +270,7 @@ process get_software_versions {
     preseq &> v_preseq.txt                                  # Not working libgsl.so.0: cannot open shared object file also in docker
     read_duplication.py --version &> v_rseqc.txt            # Working
     echo \$(bamCoverage --version 2>&1) > v_deeptools.txt       # unknown
-    java -jar /usr/local/bin/picard.jar MarkDuplicates --version &> v_markduplicates.txt  || true    # Not working, not in docker either
+    picard MarkDuplicates --version &> v_markduplicates.txt  || true    # Not working, not in docker either
     samtools --version &> v_samtools.txt                    # Working
     multiqc --version &> v_multiqc.txt                      # Working
     scrape_software_versions.py &> software_versions_mqc.yaml   # unknown
