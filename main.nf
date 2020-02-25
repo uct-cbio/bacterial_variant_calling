@@ -354,7 +354,7 @@ process '1D_prepare_samples' {
   script:
   """
   echo $params.SRAdir > out.txt
-  python3 process_samples.py -i $samples -f $params.SRAdir
+  process_samples.py -i $samples -f $params.SRAdir
   """
 }
 
