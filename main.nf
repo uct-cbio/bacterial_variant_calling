@@ -273,7 +273,7 @@ process get_software_versions {
     #picard MarkDuplicates --version &> v_markduplicates.txt  || true    # Not working, not in docker either
     samtools --version &> v_samtools.txt                    # Working
     multiqc --version &> v_multiqc.txt                      # Working
-    #scrape_software_versions.py &> software_versions_mqc.yaml   # unknown
+    scrape_software_versions.py &> software_versions_mqc.yaml   # unknown
     """
 }
 
