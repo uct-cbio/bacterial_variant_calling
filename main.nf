@@ -177,6 +177,10 @@ aligner         = params.aligner
 variant_caller  = params.variant_caller
 vcf_qual_cutoff = params.vcf_qual_cutoff
 
+srst_min_gene_cov           = params.srst_min_gene_cov
+srst_max_gene_divergence    = params.srst_max_gene_divergence
+
+
 
 // Header log info
 log.info nfcoreHeader()
@@ -478,6 +482,8 @@ process srst2 {
     file forward_trimmed_reads_for_srst2
     file reverse_trimmed_reads_for_srst2
     val sampleNumber_srst2
+    val srst_min_gene_cov
+    val srst_max_gene_divergence
 
     output:
 	file("${sampleNumber_srst2}_srst2*")
@@ -488,7 +494,7 @@ process srst2 {
     mlstdef = params.mlst_db ? "--mlst_definitions $mlst_definitions" : ''
     mlstdelim = params.mlst_db ? "--mlst_delimiter $params.mlst_delimiter" : ''
     """
-    srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db Mycobacteria_spp..fasta --mlst_definitions mycobacteria.txt --mlst_delimiter '_' --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence
+    srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db Mycobacteria_spp..fasta --mlst_definitions mycobacteria.txt --mlst_delimiter '_' --min_coverage $srst_min_gene_cov --max_divergence $srst_max_gene_divergence
     #srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
     """
 }
