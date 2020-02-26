@@ -763,67 +763,10 @@ process dupradar {
 /*
  * STEP 8 Feature counts
  */
-process featureCounts {
-    label 'low_memory'
-    tag "${bam_featurecounts.baseName - '.sorted'}"
-    publishDir "${params.outdir}/featureCounts", mode: 'copy',
-        saveAs: {filename ->
-            if (filename.indexOf("biotype_counts") > 0) "biotype_counts/$filename"
-            else if (filename.indexOf("_gene.featureCounts.txt.summary") > 0) "gene_count_summaries/$filename"
-            else if (filename.indexOf("_gene.featureCounts.txt") > 0) "gene_counts/$filename"
-            else "$filename"
-        }
-
-    input:
-    file bam_featurecounts
-    file gtf from gtf_featureCounts.collect()
-    file biotypes_header from ch_biotypes_header.collect()
-
-    output:
-    file "${bam_featurecounts.baseName}_gene.featureCounts.txt" into geneCounts, featureCounts_to_merge
-    file "${bam_featurecounts.baseName}_gene.featureCounts.txt.summary" into featureCounts_logs
-    file "${bam_featurecounts.baseName}_biotype_counts*mqc.{txt,tsv}" into featureCounts_biotype
-
-    script:
-    def featureCounts_direction = 0
-    def extraAttributes = params.fcExtraAttributes ? "--extraAttributes ${params.fcExtraAttributes}" : ''
-    if (forward_stranded && !unstranded) {
-        featureCounts_direction = 1
-    } else if (reverse_stranded && !unstranded){
-        featureCounts_direction = 2
-    }
-    // Try to get real sample name
-    sample_name = bam_featurecounts.baseName - 'Aligned.sortedByCoord.out'
-    """
-    featureCounts -a $gtf -g ${params.fcGroupFeatures} -o ${bam_featurecounts.baseName}_gene.featureCounts.txt $extraAttributes -p -s $featureCounts_direction $bam_featurecounts
-    featureCounts -a $gtf -g ${params.fcGroupFeaturesType} -o ${bam_featurecounts.baseName}_biotype.featureCounts.txt -p -s $featureCounts_direction $bam_featurecounts
-    cut -f 1,7 ${bam_featurecounts.baseName}_biotype.featureCounts.txt | tail -n +3 | cat $biotypes_header - >> ${bam_featurecounts.baseName}_biotype_counts_mqc.txt
-    mqc_features_stat.py ${bam_featurecounts.baseName}_biotype_counts_mqc.txt -s $sample_name -f rRNA -o ${bam_featurecounts.baseName}_biotype_counts_gs_mqc.tsv
-    """
-}
 
 /*
  * STEP 9 - Merge featurecounts
  */
-process merge_featureCounts {
-    tag "${input_files[0].baseName - '.sorted'}"
-    publishDir "${params.outdir}/featureCounts", mode: 'copy'
-
-    input:
-    file input_files from featureCounts_to_merge.collect()
-
-    output:
-    file 'merged_gene_counts.txt'
-
-    script:
-    //if we only have 1 file, just use cat and pipe output to csvtk. Else join all files first, and then remove unwanted column names.
-    def single = input_files instanceof Path ? 1 : input_files.size()
-    def merge = (single == 1) ? 'cat' : 'csvtk join -t -f "Geneid,Start,Length,End,Chr,Strand,gene_name"'
-    """
-    $merge $input_files | csvtk cut -t -f "-Start,-Chr,-End,-Length,-Strand" | sed 's/Aligned.sortedByCoord.out.markDups.bam//g' > merged_gene_counts.txt
-    """
-}
-
 
 /*
  *  END OF PART 2
