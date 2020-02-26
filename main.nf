@@ -428,7 +428,6 @@ process trim_galore {
 
     input:
     set number, file(R1), file(R2) from newSampleChannel
-    # --- file wherearemyfiles from ch_where_trim_galore.collect()
 
     output:
     file "*_1.fq.gz" into forwardTrimmed
@@ -437,7 +436,6 @@ process trim_galore {
     file "*_2.fq.gz" into reverse_trimmed_reads_for_srst2
     file "*trimming_report.txt" into trimgalore_results
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
-    # --- file "where_are_my_files.txt"
     val "$number" into sampleNumber_srst2
     val "$number" into sampleNumber
 
