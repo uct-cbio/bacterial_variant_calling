@@ -690,7 +690,8 @@ process preseq {
 
     script:
     """
-    preseq lc_extrap -v -B $bam_preseq -o ${bam_preseq.baseName}.ccurve.txt
+    #preseq lc_extrap -v -B $bam_preseq -o ${bam_preseq.baseName}.ccurve.txt
+    touch ${bam_preseq.baseName}.ccurve.txt
     """
 }
 
