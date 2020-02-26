@@ -706,12 +706,12 @@ process '2B_mark_duplicates' {
   output:
     file "${sample_bam.baseName}_dedup.bam" into dedup_bamfiles
     file "${sample_bam.baseName}.txt" into dedup_logs
-    file "${bam.baseName}.markDups.bam" into bam_md
-    file "${bam.baseName}.markDups_metrics.txt" into picard_results
-    file "${bam.baseName}.markDups.bam.bai"
+    file "${sample_bam.baseName}.markDups.bam" into bam_md
+    file "${sample_bam.baseName}.markDups_metrics.txt" into picard_results
+    file "${sample_bam.baseName}.markDups.bam.bai"
   script:
     """
-    echo $sample_bam
+    picard MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}_dedup.bam METRICS_FILE=${sample_bam.baseName}.txt
     """
 }
 
