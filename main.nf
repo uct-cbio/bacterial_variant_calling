@@ -712,10 +712,7 @@ process '2B_mark_duplicates' {
   script:
     """
     PICARD=`which picard.jar` 
-    java -jar \$PICARD MarkDuplicates \
-    INPUT=$sample_bam \
-    OUTPUT=${sample_bam.baseName}_dedup.bam \
-    METRICS_FILE=${sample_bam.baseName}.txt
+    $PICARD MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}_dedup.bam METRICS_FILE=${sample_bam.baseName}.txt
     """
 }
 
