@@ -534,7 +534,6 @@ process '2A_read_mapping' {
     file "sample_${sampleNumber}_sorted.bam" into bam_forSubsamp
     file "sample_${sampleNumber}_sorted.bam" into bam_skipSubsamp
     file "sample_${sampleNumber}_sorted.bam" into bam_featurecounts
-    file "*.out" into alignment_logs
   script:
   if( aligner == 'bwa-mem' )
     """
