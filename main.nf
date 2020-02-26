@@ -43,6 +43,8 @@ def helpMessage() {
         --vcf_qual_cutoff             Soon to be removed
         --aligner                     Currently only bwa-mem
         --variant_caller              Currently only freebayes
+        --srst_min_gene_cov           Minimum coverage for srst2 (default 90)
+        --srst_max_gene_divergence	  Maximum %divergence cutoff for gene reporting (default 10)
 
 
     Other arguments:
@@ -486,7 +488,8 @@ process srst2 {
     mlstdef = params.mlst_db ? "--mlst_definitions $mlst_definitions" : ''
     mlstdelim = params.mlst_db ? "--mlst_delimiter $params.mlst_delimiter" : ''
     """
-    srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
+    srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db Mycobacteria_spp..fasta --mlst_definitions mycobacteria.txt --mlst_delimiter '_' --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence
+    #srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
     """
 }
 
