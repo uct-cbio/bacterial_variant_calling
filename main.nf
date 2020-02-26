@@ -711,6 +711,7 @@ process '2B_mark_duplicates' {
     file "${bam.baseName}.markDups.bam.bai"
   script:
     """
+    echo $sample_bam
     picard MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}_dedup.bam METRICS_FILE=${sample_bam.baseName}.txt
     """
 }
