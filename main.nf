@@ -267,7 +267,7 @@ process get_software_versions {
     cutadapt --version &> v_cutadapt.txt                    # Working
     trim_galore --version &> v_trim_galore.txt              # Working
     #bwa &> v_bwa.txt                                        # Working, not parsing
-    preseq &> v_preseq.txt                                  # Not working libgsl.so.0: cannot open shared object file also in docker
+    #preseq &> v_preseq.txt                                  # Not working libgsl.so.0: cannot open shared object file also in docker
     read_duplication.py --version &> v_rseqc.txt            # Working
     echo \$(bamCoverage --version 2>&1) > v_deeptools.txt       # unknown
     picard MarkDuplicates --version &> v_markduplicates.txt  || true    # Not working, not in docker either
