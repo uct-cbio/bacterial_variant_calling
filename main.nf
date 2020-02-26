@@ -706,13 +706,12 @@ process '2B_mark_duplicates' {
     file sample_bam from bamfiles
   output:
     file "${sample_bam.baseName}_dedup.bam" into dedup_bamfiles
-    file "${sample_bam.baseName}.txt" into dedup_logs
-    file "${sample_bam.baseName}.markDups.bam" into bam_md
-    file "${sample_bam.baseName}.markDups_metrics.txt" into picard_results
+    file "${sample_bam.baseName}_dedup.bam" into bam_md
+    file "${sample_bam.baseName}.txt" into picard_results
     file "${sample_bam.baseName}.markDups.bam.bai"
   script:
     """
-    picard MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}_dedup.bam METRICS_FILE=${sample_bam.baseName}.txt
+    picard MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}_dedup.bam METRICS_FILE=${sample_bam.baseName}.txt ASSUME_SORTED=true REMOVE_DUPLICATES=false \\
     """
 }
 
