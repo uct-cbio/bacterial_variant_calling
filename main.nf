@@ -93,6 +93,7 @@ if (params.help){
 //params.outdir            = "$baseDir"
 //params.SRAdir            = "$baseDir/"
 
+params.subsampFilesizeThreshold = 10000000000
 
 ch_mdsplot_header = Channel.fromPath("$baseDir/assets/mdsplot_header.txt")
 ch_heatmap_header = Channel.fromPath("$baseDir/assets/heatmap_header.txt")
