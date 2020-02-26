@@ -465,6 +465,8 @@ process trim_galore {
 
 
 
+
+asf
 /*
  *
  * Step 1: srst2 (run per sample)  -- edit needed
