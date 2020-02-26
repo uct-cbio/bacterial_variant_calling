@@ -267,14 +267,14 @@ process get_software_versions {
     cutadapt --version &> v_cutadapt.txt                    # Working
     trim_galore --version &> v_trim_galore.txt              # Working
     #bwa &> v_bwa.txt                                        # Working, not parsing
-    #preseq &> v_preseq.txt                                  # Not working libgsl.so.0: cannot open shared object file also in docker
-    #read_duplication.py --version &> v_rseqc.txt            # Working
-    #echo \$(bamCoverage --version 2>&1) > v_deeptools.txt       # unknown
-    #picard MarkDuplicates --version &> v_markduplicates.txt  || true    # Not working, not in docker either
+    preseq &> v_preseq.txt                                  # Not working libgsl.so.0: cannot open shared object file also in docker
+    read_duplication.py --version &> v_rseqc.txt            # Working
+    echo \$(bamCoverage --version 2>&1) > v_deeptools.txt       # unknown
+    picard MarkDuplicates --version &> v_markduplicates.txt  || true    # Not working, not in docker either
     samtools --version &> v_samtools.txt                    # Working
     multiqc --version &> v_multiqc.txt                      # Working
-    #scrape_software_versions.py &> software_versions_mqc.yaml   # unknown
-    touch software_versions_mqc.yaml
+    scrape_software_versions.py &> software_versions_mqc.yaml   # unknown
+    #touch software_versions_mqc.yaml
     """
 }
 
@@ -431,10 +431,10 @@ process trim_galore {
     file wherearemyfiles from ch_where_trim_galore.collect()
 
     output:
-    file "*_R1.fq.gz" into forwardTrimmed
-    file "*_R2.fq.gz" into reverseTrimmed
-    file "*R1.fq.gz" into forward_trimmed_reads_for_srst2
-    file "*R2.fq.gz" into reverse_trimmed_reads_for_srst2
+    file "*_1.fq.gz" into forwardTrimmed
+    file "*_2.fq.gz" into reverseTrimmed
+    file "*_1.fq.gz" into forward_trimmed_reads_for_srst2
+    file "*_2.fq.gz" into reverse_trimmed_reads_for_srst2
     file "*trimming_report.txt" into trimgalore_results
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
     file "where_are_my_files.txt"
