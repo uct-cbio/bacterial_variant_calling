@@ -478,8 +478,9 @@ process trim_galore {
  */
 
 process srst2 {
-    tag { "srst2.${pairId}" }
+    tag { "srst2.${sampleNumber_srst2}" }
     publishDir "${params.outdir}/srst2", mode: "copy"
+    label 'high_memory'
 
     input:
     file forward_trimmed_reads_for_srst2
