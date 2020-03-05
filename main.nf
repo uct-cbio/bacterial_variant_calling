@@ -971,14 +971,14 @@ process '3A_call_variants' {
   script:
   if( variant_caller == 'freebayes' )
     """
-    freebayes -f $genome -p 1 $sample_bam > need_rename.vcf
+    /freebayes/bin/freebayes -f $genome -p 1 $sample_bam > need_rename.vcf
     echo "unknown ${sample_bam.baseName}\n" > sample_names.txt
     /bcftools/bcftools reheader need_rename.vcf --samples sample_names.txt -o ${sample_bam.baseName}.vcf
 
     """
   else if( variant_caller == 'samtools' )
     """
-    freebayes -f $genome -p 1 $sample_bam > ${sample_bam.baseName}.vcf
+    samtools -f $genome -p 1 $sample_bam > ${sample_bam.baseName}.vcf
     """
   else
     error "Invalid variant caller: ${variant_caller}"
