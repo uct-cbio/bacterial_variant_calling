@@ -712,7 +712,7 @@ process '2B_mark_duplicates' {
     file "${sample_bam.baseName}.markDups.bam.bai"
   script:
     """
-    picard -XX:ParallelGCThreads=5 -Xmx16G -Xms16G  MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}_dedup.bam METRICS_FILE=${sample_bam.baseName}.txt ASSUME_SORTED=true REMOVE_DUPLICATES=false \\
+    picard MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}_dedup.bam METRICS_FILE=${sample_bam.baseName}.txt ASSUME_SORTED=true REMOVE_DUPLICATES=false \\
     samtools index ${sample_bam.baseName}_dedup.bam
     """
 }
