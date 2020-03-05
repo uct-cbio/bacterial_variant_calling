@@ -968,7 +968,6 @@ process '3A_call_variants' {
   output:
     set file("${sample_bam.baseName}.vcf"), file("$sample_bam") into vcf_bam_files
 
-
   script:
   if( variant_caller == 'freebayes' )
     """

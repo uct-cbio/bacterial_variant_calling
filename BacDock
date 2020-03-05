@@ -62,7 +62,7 @@ RUN curl -fksSL https://github.com/alexdobin/STAR/archive/2.5.2b.tar.gz | tar xz
 
 # Install freebayes
 RUN git clone --recursive https://github.com/ekg/freebayes
-RUN cd freebayes && make
+RUN cd freebayes && make; make install
 
 
 # install bwe-mem
