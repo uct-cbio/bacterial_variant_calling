@@ -742,7 +742,7 @@ process dupradar {
 
     input:
     file bam_md
-    file gtf from gtf_dupradar.collect()
+    file gtf from gtf_dupradar
 
     output:
     file "*.{pdf,txt}" into dupradar_results
