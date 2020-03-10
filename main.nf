@@ -76,7 +76,7 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
     exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
 }
 
-println params.gtf.extension
+println params.gtf
 
 // Elvis syntax
 // Reference index path configuration
