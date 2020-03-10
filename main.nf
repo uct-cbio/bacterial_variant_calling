@@ -35,7 +35,8 @@ def helpMessage() {
     Mandatory arguments:
         --reads                       The sample sheet containing the paths to the fastq files, as well as sample names.
         --genome                      The reference genome to be used in fasta format. Also acts as an outgroup.
-        --gff                         Path to GFF3 file
+        --gff                         Path to GFF3 file OR (see next arg)
+        --gtf                         Path to GTF file
         -profile                      Hardware config to use. local / uct_hex
 
     Optional arguments:
@@ -70,6 +71,20 @@ params.project = false
 params.email = false
 params.plaintext_email = false
 
+// Check if genome exists in the config file
+if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
+    exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
+}
+
+// Elvis syntax
+// Reference index path configuration
+// Define these here - after the profiles are loaded with the iGenomes paths
+//params.star_index = params.genome ? params.genomes[ params.genome ].star ?: false : false
+//params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
+params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
+params.gff = params.genome ? params.genomes[ params.genome ].gff ?: false : false
+//params.bed12 = params.genome ? params.genomes[ params.genome ].bed12 ?: false : false
+//params.hisat2_index = params.genome ? params.genomes[ params.genome ].hisat2 ?: false : false
 
 
 Channel.fromPath("$baseDir/assets/where_are_my_files.txt")
