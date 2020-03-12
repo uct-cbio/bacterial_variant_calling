@@ -61,8 +61,8 @@ RUN curl -fksSL https://github.com/alexdobin/STAR/archive/2.5.2b.tar.gz | tar xz
 
 
 # Install freebayes
-RUN git clone --recursive https://github.com/ekg/freebayes
-RUN cd freebayes && make; make install
+#RUN git clone --recursive https://github.com/ekg/freebayes
+#RUN cd freebayes && make; make install
 
 
 # install bwe-mem
@@ -95,9 +95,9 @@ RUN R -e 'install.packages( c("reshape2","optparse", "BiocManager"), repos="http
 RUN R -e 'BiocManager::install("dupRadar");'
 
 # Install SRA toolkit
-RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.2/sratoolkit.2.9.2-ubuntu64.tar.gz" && \
-   tar -xzf sratoolkit.2.9.2-ubuntu64.tar.gz
-ENV PATH "$PATH:/sratoolkit.2.9.2-ubuntu64/bin/:/vcf2fasta/"
+#RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.2/sratoolkit.2.9.2-ubuntu64.tar.gz" && \
+#   tar -xzf sratoolkit.2.9.2-ubuntu64.tar.gz
+#ENV PATH "$PATH:/sratoolkit.2.9.2-ubuntu64/bin/:/vcf2fasta/"
 
 # Install trimmomatic
 
@@ -212,6 +212,10 @@ RUN conda install -c bioconda snpeff
 RUN conda install -c bioconda trim-galore
 RUN conda install -c bioconda cutadapt
 RUN conda install -c bioconda fastx_toolkit
+RUN conda install -c bioconda gffread=0.9.12
+RUN conda install -c bioconda deeptools=3.2.0
+RUN conda install -c bioconda sra-tools
+RUN conda install -c bioconda freebayes
 
 #RUN conda install -c bioconda preseq
 
