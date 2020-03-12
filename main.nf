@@ -297,7 +297,7 @@ process get_software_versions {
     samtools --version &> v_samtools.txt                    # Working
     multiqc --version &> v_multiqc.txt                      # Working
     #scrape_software_versions.py &> software_versions_mqc.yaml   # unknown
-    #touch software_versions_mqc.yaml
+    echo "this" &> software_versions_mqc.yaml
     """
 }
 
