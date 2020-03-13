@@ -493,6 +493,7 @@ process trim_galore {
  * https://github.com/kviljoen/uct-srst2/blob/master/main.nf
  */
 
+/*
 process srst2 {
     tag { "srst2.${sampleNumber_srst2}" }
     publishDir "${params.outdir}/srst2", mode: "copy"
@@ -519,7 +520,7 @@ process srst2 {
     #srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
     """
 }
-
+*/
 
 
 
