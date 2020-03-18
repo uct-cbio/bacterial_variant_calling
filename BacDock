@@ -211,9 +211,10 @@ RUN conda install -c bioconda gffread=0.9.12
 RUN conda install -c bioconda deeptools=3.2.0
 RUN conda install -c bioconda sra-tools
 RUN conda install -c bioconda freebayes
+RUN conda install -c bioconda bioconductor-dupradar=1.12.1
 
-#RUN conda install -c bioconda samtools=1.3
-RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2 && tar xvfj samtools-0.1.18.tar.bz2 && cd samtools-0.1.18 && make && cp samtools /usr/local/bin &&  cp bcftools/bcftools /usr/local/bin && cd misc/ &&  cp *.pl maq2sam-long maq2sam-short md5fa md5sum-lite wgsim /usr/local/bin/ && cd
+RUN conda install -c bioconda samtools=0.1.18
+#RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2 && tar xvfj samtools-0.1.18.tar.bz2 && cd samtools-0.1.18 && make && cp samtools /usr/local/bin &&  cp bcftools/bcftools /usr/local/bin && cd misc/ &&  cp *.pl maq2sam-long maq2sam-short md5fa md5sum-lite wgsim /usr/local/bin/ && cd
 
 
 #RUN conda install -c bioconda preseq
@@ -222,6 +223,9 @@ RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/0.1.18/s
 RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
 RUN ln -s /vcf2fasta/vcf2fasta.py /usr/local/bin/vcf2fasta.py
 RUN ln -s /vcf2fasta/process_samples.py /usr/local/bin/process_samples.py
+
+# Build this image
+#docker build -t bacterial_genomics -f BacDock .
 
 # To build sing image
 #docker run -v /var/run/docker.sock:/var/run/docker.sock -v /Volumes/External/bac_genomics:/output --privileged -t --rm singularityware/docker2singularity:v2.6 -m "/shared_fs /custom_mountpoint2" bacterial_genomics:latest
