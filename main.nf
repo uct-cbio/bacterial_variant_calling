@@ -556,8 +556,7 @@ process '2A_read_mapping' {
   script:
   if( aligner == 'bwa-mem' )
     """
-    bwa mem $genome $forwardTrimmed $reverseTrimmed > sample_${sampleNumber}_aligned.bam
-    samtools sort -o sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_aligned.bam
+    bwa mem $genome $forwardTrimmed $reverseTrimmed > sample_${sampleNumber}_aligned.bam | samtools sort -o sample_${sampleNumber}_sorted.bam
     samtools index sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_sorted.bai
     """
 
