@@ -1053,7 +1053,6 @@ process '3D_split_vcf_indel_snps' {
  * Integrate SNPs into reference genome with BCFtools
  */
 process BuildConesnsusSequence {
-	tag {snp_vcfs}
 
 	publishDir "${params.out_dir}/Consensus"
 
