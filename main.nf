@@ -1062,14 +1062,14 @@ process BuildConesnsusSequence {
 	file genome from genome_file
 
 	output:
-	file("${dataset_id}_consensus.fa") into consensus_files
-	file("${dataset_id}_in_list.txt") into ksnp3_configuration
+	file("${snp_vcfs.baseName}_consensus.fa") into consensus_files
+	file("${snp_vcfs.baseName}_in_list.txt") into ksnp3_configuration
 
 	"""
 	bgzip -c $snp_vcf_file
 	tabix ${snp_vcfs.baseName}_genome_variants.vcf.gz
 	cat $genome | bcftools consensus ${snp_vcfs.baseName}_genome_variants.vcf.gz > ${snp_vcfs.baseName}_consensus.fa
-	echo -e "$params.out_dir/Consensus/${snp_vcfs.baseName}_consensus.fa\snp_vcfs.baseName" >> ${snp_vcfs.baseName}_in_list.txt
+	echo -e "$params.out_dir/Consensus/${snp_vcfs.baseName}_consensus.fa\${snp_vcfs.baseName}" >> ${snp_vcfs.baseName}_in_list.txt
 	"""
 }
 
