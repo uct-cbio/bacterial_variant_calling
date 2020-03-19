@@ -1036,9 +1036,12 @@ process Snpeff_download_DB {
 
   publishDir "${params.outdir}/snpEffDB", mode: "link", overwrite: false
 
+  output:
+    file dl_result.txt into snpeff_dl_result
   script:
   """
   snpEff -Xmx4g download ${params.snpeffDb}
+  echo "win" > dl_result.txt
   """
 }
 
@@ -1048,6 +1051,7 @@ process Snpeff {
 
   input:
     file filtered_vcf from filtered_vcfs_snpEff
+    file snpeff_dl_text from snpeff_dl_result
   output:
     set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt") into snpEffResults
   script:
@@ -1061,7 +1065,7 @@ process Snpeff {
     > ${filtered_vcf.baseName}_snpEff.ann.vcf
   mv snpEff_summary.html ${filtered_vcf.baseName}_snpEff.html
   mv ${filtered_vcf.baseName}_snpEff.genes.txt ${filtered_vcf.baseName}_snpEff.txt
-
+  rm $snpeff_dl_text
   """
 }
 
