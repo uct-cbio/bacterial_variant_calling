@@ -740,6 +740,7 @@ process '2B_mark_duplicates' {
 /*
  * STEP 7 - dupRadar - NEED TO EDIT
  */
+/*
 process dupradar {
     label 'low_memory'
     tag "${bam_md.baseName - '.sorted.markDups'}"
@@ -773,10 +774,10 @@ process dupradar {
     }
     def paired = params.singleEnd ? 'single' :  'paired'
     """
-    dupRadar.r $bam_md $gtf $dupradar_direction single 2
+    dupRadar.r $bam_md $gtf $dupradar_direction $paired ${task.cpus}
     """
 }
-
+*/
 
 
 /*
