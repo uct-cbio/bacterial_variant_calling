@@ -1040,7 +1040,7 @@ process Snpeff {
   input:
     file filtered_vcf from filtered_vcfs_snpEff
   output:
-    set file(${filtered_vcf.baseName}_snpEff.ann.vcf), file(${filtered_vcf.baseName}_snpEff.html), file(${filtered_vcf.baseName}_snpEff.txt) into snpEffResults
+    set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt") into snpEffResults
   script:
   """
   snpEff -Xmx4g \
