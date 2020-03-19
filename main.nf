@@ -1032,6 +1032,15 @@ process '3C_filter_variants' {
   """
 }
 
+process Snpeff_download_DB {
+
+  publishDir "${params.outdir}/snpEffDB", mode: "link", overwrite: false
+
+  script:
+  """
+  snpEff -Xmx4g download ${params.snpeffDb}
+  """
+}
 
 process Snpeff {
   publishDir "${params.outdir}/SnpEff", mode: "link", overwrite: false
