@@ -1054,7 +1054,7 @@ process '3D_split_vcf_indel_snps' {
  */
 process BuildConesnsusSequence {
 
-	publishDir "${params.out_dir}/Consensus"
+	publishDir "${params.outdir}/Consensus"
 
 	input:
 	file snp_vcf_file from snp_vcfs
@@ -1062,12 +1062,13 @@ process BuildConesnsusSequence {
 
 	output:
 	file("${snp_vcf_file.baseName}_consensus.fa") into consensus_files
+	file("${snp_vcf_file.baseName}_in_list.txt") into ksnp3_configuration
 
 	"""
 	bgzip -c $snp_vcf_file > ${snp_vcf_file.baseName}.vcf.gz
 	tabix ${snp_vcf_file.baseName}.vcf.gz
 	cat $genome | bcftools consensus ${snp_vcf_file.baseName}.vcf.gz > ${snp_vcf_file.baseName}_consensus.fa
-	#echo -e "$params.out_dir/Consensus/${snp_vcf_file.baseName}_consensus.fa\t${snp_vcf_file.baseName}" >> ${snp_vcf_file.baseName}_in_list.txt
+	echo -e "$params.outdir/Consensus/${snp_vcf_file.baseName}_consensus.fa\t${snp_vcf_file.baseName}" >> ${snp_vcf_file.baseName}_in_list.txt
 	"""
 }
 
@@ -1109,7 +1110,7 @@ process '4B_merge_vcf_files' {
     file "out_merged.vcf" into merged_vcf
   script:
   """
-  /bcftools/bcftools merge $gz_vcf -o out_merged.vcf
+  bcftools merge $gz_vcf -o out_merged.vcf
   """
 }
 
