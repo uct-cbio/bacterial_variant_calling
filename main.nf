@@ -773,7 +773,7 @@ process dupradar {
     }
     def paired = params.singleEnd ? 'single' :  'paired'
     """
-    dupRadar.r $bam_md $gtf $dupradar_direction $paired ${task.cpus}
+    dupRadar.r $bam_md $gtf $dupradar_direction $paired 2
     """
 }
 
