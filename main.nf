@@ -1053,7 +1053,7 @@ process '3D_split_vcf_indel_snps' {
  * Integrate SNPs into reference genome with BCFtools
  */
 process BuildConesnsusSequence {
-	tag { dataset_id }
+	tag {snp_vcfs.baseName}
 
 	publishDir "${params.out_dir}/Consensus"
 
@@ -1067,9 +1067,9 @@ process BuildConesnsusSequence {
 
 	"""
 	bgzip -c $snp_vcf_file
-	tabix ${dataset_id}_genome_variants.vcf.gz
-	cat $genome | bcftools consensus ${dataset_id}_genome_variants.vcf.gz > ${dataset_id}_consensus.fa
-	echo -e "$params.out_dir/Consensus/${dataset_id}_consensus.fa\t$dataset_id" >> ${dataset_id}_in_list.txt
+	tabix ${snp_vcfs.baseName}_genome_variants.vcf.gz
+	cat $genome | bcftools consensus ${snp_vcfs.baseName}_genome_variants.vcf.gz > ${snp_vcfs.baseName}_consensus.fa
+	echo -e "$params.out_dir/Consensus/${snp_vcfs.baseName}_consensus.fa\snp_vcfs.baseName" >> ${snp_vcfs.baseName}_in_list.txt
 	"""
 }
 
