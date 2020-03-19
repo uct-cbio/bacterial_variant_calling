@@ -1065,9 +1065,9 @@ process BuildConesnsusSequence {
 	file("${snp_vcf_file.baseName}_in_list.txt") into ksnp3_configuration
 
 	"""
-	bgzip -c $snp_vcf_file
-	tabix ${snp_vcf_file.baseName}_genome_variants.vcf.gz
-	cat $genome | bcftools consensus ${snp_vcf_file.baseName}_genome_variants.vcf.gz > ${snp_vcf_file.baseName}_consensus.fa
+	bgzip -c $snp_vcf_file > ${snp_vcf_file.baseName}.vcf.gz
+	tabix ${snp_vcf_file.baseName}.vcf.gz
+	cat $genome | bcftools consensus ${snp_vcf_file.baseName}.vcf.gz > ${snp_vcf_file.baseName}_consensus.fa
 	echo -e "$params.out_dir/Consensus/${snp_vcf_file.baseName}_consensus.fa\${snp_vcf_file.baseName}" >> ${snp_vcf_file.baseName}_in_list.txt
 	"""
 }
