@@ -1037,7 +1037,7 @@ process Snpeff_download_DB {
   publishDir "${params.outdir}/snpEffDB", mode: "link", overwrite: false
 
   output:
-    file dl_result.txt into snpeff_dl_result
+    file "dl_result.txt" into snpeff_dl_result
   script:
   """
   snpEff -Xmx4g download ${params.snpeffDb}
