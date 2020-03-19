@@ -49,6 +49,7 @@ def helpMessage() {
 
 
     Other arguments:
+        --snpeffDb                    Which SNPEff database to use
         --SRAdir                      The directory where reads downloaded from the SRA will be stored
         --outdir                      The output directory where the results will be saved
         --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
@@ -1024,12 +1025,36 @@ process '3C_filter_variants' {
     set file(vcf), file(bam), coverage from vcf_bam_cov_files
   output:
     file "${vcf.baseName}_filtered.recode.vcf" into filtered_vcfs
+    file "${vcf.baseName}_filtered.recode.vcf" into filtered_vcfs_snpEff
   script:
   """
   vcftools --vcf $vcf --minQ $params.minQuality --recode --recode-INFO-all --out ${vcf.baseName}_filtered --maxDP $coverage
   """
 }
 
+
+process Snpeff {
+  publishDir "${params.outdir}/SnpEff", mode: "link", overwrite: false
+
+
+  input:
+    file filtered_vcf from filtered_vcfs_snpEff
+  output:
+    set file(${filtered_vcf.baseName}_snpEff.ann.vcf), file(${filtered_vcf.baseName}_snpEff.html), file(${filtered_vcf.baseName}_snpEff.txt) into snpEffResults
+  script:
+  """
+  snpEff -Xmx4g \
+    ${params.snpeffDb} \
+    -dataDir ${params.outdir}/snpEffDB/ \
+    -csvStats ${filtered_vcf.baseName}_snpEff.csv \
+    -v \
+    ${filtered_vcf} \
+    > ${filtered_vcf.baseName}_snpEff.ann.vcf
+  mv snpEff_summary.html ${filtered_vcf.baseName}_snpEff.html
+  mv ${filtered_vcf.baseName}_snpEff.genes.txt ${filtered_vcf.baseName}_snpEff.txt
+
+  """
+}
 
 
 process '3D_split_vcf_indel_snps' {
