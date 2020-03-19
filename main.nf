@@ -1220,7 +1220,7 @@ process multiqc {
     file ('rseqc/*') from rseqc_results.collect().ifEmpty([])
     file ('rseqc/*') from genebody_coverage_results.collect().ifEmpty([])
     file ('preseq/*') from preseq_results.collect().ifEmpty([])
-    file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
+    /* file ('dupradar/*') from dupradar_results.collect().ifEmpty([])  */
     file ('software_versions/*') from software_versions_yaml
     file workflow_summary from create_workflow_summary(summary)
 
