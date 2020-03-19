@@ -1045,7 +1045,7 @@ process Snpeff {
   """
   snpEff -Xmx4g \
     ${params.snpeffDb} \
-    -dataDir ${params.outdir}/snpEffDB/ \
+    -dataDir ${params.outdir}snpEffDB/ \
     -csvStats ${filtered_vcf.baseName}_snpEff.csv \
     -v \
     ${filtered_vcf} \
