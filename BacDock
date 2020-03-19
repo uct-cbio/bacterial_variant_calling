@@ -213,8 +213,8 @@ RUN conda install -c bioconda sra-tools
 RUN conda install -c bioconda freebayes
 RUN conda install -c bioconda bioconductor-dupradar=1.12.1
 
-RUN conda install -c bioconda samtools=0.1.18
-#RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2 && tar xvfj samtools-0.1.18.tar.bz2 && cd samtools-0.1.18 && make && cp samtools /usr/local/bin &&  cp bcftools/bcftools /usr/local/bin && cd misc/ &&  cp *.pl maq2sam-long maq2sam-short md5fa md5sum-lite wgsim /usr/local/bin/ && cd
+RUN conda install -c bioconda samtools
+RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2 && tar xvfj samtools-0.1.18.tar.bz2 && cd samtools-0.1.18 && make
 
 
 #RUN conda install -c bioconda preseq

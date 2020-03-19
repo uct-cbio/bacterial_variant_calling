@@ -294,7 +294,7 @@ process get_software_versions {
     read_duplication.py --version &> v_rseqc.txt            # Working
     echo \$(bamCoverage --version 2>&1) > v_deeptools.txt       # unknown
     picard MarkDuplicates --version &> v_markduplicates.txt  || true    # Not working, not in docker either
-    #samtools &> v_samtools.txt                              # Working
+    samtools --version &> v_samtools.txt                    # Working
     multiqc --version &> v_multiqc.txt                      # Working
     #scrape_software_versions.py &> software_versions_mqc.yaml   # unknown
     echo "this" &> software_versions_mqc.yaml
@@ -556,9 +556,7 @@ process '2A_read_mapping' {
   script:
   if( aligner == 'bwa-mem' )
     """
-    bwa mem $genome $forwardTrimmed $reverseTrimmed > sample_${sampleNumber}_aligned.bam
-    samtools sort -o sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_aligned.bam
-    ls
+    bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}_sorted.bam
     samtools index sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_sorted.bai
     """
 
