@@ -1040,7 +1040,7 @@ process Snpeff_download_DB {
   """
   # Copy config from conda?
   #cp assets/snpEff.config snpEff.config
-  sed -i 's_./data/_${params.outdir}snpEffDB/_' snpEff.config
+  sed -i 's_./data/_${params.outdir}snpEffDB/_g' snpEff.config
   snpEff -Xmx4g download ${params.snpeffDb} -c ./snpEff.config
   """
 }
