@@ -49,7 +49,7 @@ def helpMessage() {
 
 
     Other arguments:
-        --snpeffDb                    Which SNPEff database to use
+        --snpeffDb                    Which SNPEff database to use ("build" to use your own)
         --SRAdir                      The directory where reads downloaded from the SRA will be stored
         --outdir                      The output directory where the results will be saved
         --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
@@ -1032,18 +1032,69 @@ process '3C_filter_variants' {
   """
 }
 
-process Snpeff_download_DB {
 
-  output:
-    file "snpEff.config" into snpeff_config_file
-  script:
-  """
-  # Copy config from conda?
-  cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
-  sed -i 's+./data/+${params.outdir}snpEffDB/+' snpEff.config
-  snpEff -Xmx4g download ${params.snpeffDb} -c ./snpEff.config
-  """
+
+if (params.snpeffDb == 'build') {
+
+  process Snpeff_setup_new_DB {
+
+   publishDir "${params.outdir}snpEffDB", mode: "link", overwrite: false
+
+   input:
+     file genome from genome_file
+     file gff from gffFile
+
+   output:
+     file "snpEff.config" into snpeff_config_file_dbBuild
+   script:
+
+   """
+
+   # Make a new folder in snpEffDB
+   mkdir newBacGenome
+   # Copy genome file, rename to sequences.fa
+   mv $genome newBacGenome/sequences.fa
+   # Copy ann file, rename genes.gff
+   mv gff newBacGenome/genes.gff
+   # Copy config from repo
+   cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
+   sed -i 's+./data/+${params.outdir}snpEffDB/+' snpEff.config
+   # Edit the snpEff.config, add: newBacGenome.genome: newBacGenome
+   echo "newBacGenome.genome: newBacGenome" >> snpEff.config
+   """
+  }
+
+  process Snpeff_create_DB {
+
+    input:
+      file config from snpeff_config_file_dbBuild
+
+    output:
+      file "snpEff.config" into run_config
+
+    script:
+    """
+    snpEff -Xmx4g build -gff3 -c $config -v newBacGenome
+    """
+  }
+
+} else {
+
+  process Snpeff_download_DB {
+
+    output:
+      file "snpEff.config" into run_config
+    script:
+    """
+    # Copy config from repo
+    cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
+    sed -i 's+./data/+${params.outdir}snpEffDB/+' snpEff.config
+    snpEff -Xmx4g download ${params.snpeffDb} -c ./snpEff.config
+    """
+  }
+
 }
+
 
 process Snpeff {
   publishDir "${params.outdir}/SnpEff", mode: "link", overwrite: false
@@ -1051,7 +1102,7 @@ process Snpeff {
 
   input:
     file filtered_vcf from filtered_vcfs_snpEff
-    file snpeff_config from snpeff_config_file
+    file snpeff_config from run_config
   output:
     set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt") into snpEffResults
   script:
