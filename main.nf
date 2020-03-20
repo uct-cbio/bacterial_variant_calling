@@ -1041,8 +1041,8 @@ if (params.snpeffDb == 'build') {
    publishDir "${params.outdir}snpEffDB", mode: "link", overwrite: false
 
    input:
-     file genome from genome_file
-     file gff from gffFile
+     file genome from params.genome_file
+     file gff from params.gffFile
 
    output:
      file "snpEff.config" into snpeff_config_file_dbBuild
