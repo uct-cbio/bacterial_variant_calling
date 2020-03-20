@@ -1066,7 +1066,6 @@ process Snpeff {
     > ${filtered_vcf.baseName}_snpEff.ann.vcf
   mv snpEff_summary.html ${filtered_vcf.baseName}_snpEff.html
   mv ${filtered_vcf.baseName}_snpEff.genes.txt ${filtered_vcf.baseName}_snpEff.txt
-  rm $snpeff_dl_text
   """
 }
 
