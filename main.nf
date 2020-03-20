@@ -1034,14 +1034,14 @@ process '3C_filter_variants' {
 
 process Snpeff_download_DB {
 
-  publishDir "${params.outdir}/snpEffDB", mode: "link", overwrite: false
-
   output:
-    file "dl_result.txt" into snpeff_dl_result
+    file "snpEff.config" into snpeff_config_file
   script:
   """
-  snpEff -Xmx4g download ${params.snpeffDb}
-  echo "win" > dl_result.txt
+  # Copy config from conda?
+  cp assets/snpEff.config snpEff.config
+  sed -i 's_./data/_${params.outdir}snpEffDB/' snpEff.config
+  snpEff -Xmx4g download ${params.snpeffDb} -c ./snpEff.config
   """
 }
 
@@ -1051,7 +1051,7 @@ process Snpeff {
 
   input:
     file filtered_vcf from filtered_vcfs_snpEff
-    file snpeff_dl_text from snpeff_dl_result
+    file snpeff_config from snpeff_config_file
   output:
     set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt") into snpEffResults
   script:
@@ -1061,6 +1061,7 @@ process Snpeff {
     -dataDir ${params.outdir}snpEffDB/ \
     -csvStats ${filtered_vcf.baseName}_snpEff.csv \
     -v \
+    -c ./snpEff.config \
     ${filtered_vcf} \
     > ${filtered_vcf.baseName}_snpEff.ann.vcf
   mv snpEff_summary.html ${filtered_vcf.baseName}_snpEff.html
