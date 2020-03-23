@@ -222,7 +222,7 @@ if(params.gff){
 
       output:
       file "${gff.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12, gtf_star, gtf_dupradar, gtf_featureCounts
-      file "${gff.baseName}.gff" into snpeff_gtf
+      file "${gff.baseName}.gff" into snpeff_gff
 
       script:
       """
@@ -238,7 +238,7 @@ if(params.gff){
   output:
 
   file "${gtf.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12, gtf_star, gtf_dupradar, gtf_featureCounts
-  file "${gtf.baseName}.gff" into snpeff_gtf
+  file "${gtf.baseName}.gff" into snpeff_gff
 
   script:
   """
@@ -1061,7 +1061,7 @@ if (params.snpeffDb == 'build') {
 
    input:
      file genome from genome_file
-     file gff from snpeff_gtf
+     file gff from snpeff_gff
 
    output:
      file "snpEff.config" into snpeff_config_file_dbBuild
