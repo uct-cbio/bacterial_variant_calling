@@ -148,16 +148,17 @@ if ( params.reads == false ) {
     exit 1, "Must set the path to the sample file (--reads) in csv format"
 }
 
-
+// SNPeff needs a gff, all else gtf
 if( params.gtf ){
     Channel
         .fromPath(params.gtf)
         .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
-        .into { gtf_makeSTARindex; gtf_makeHisatSplicesites; gtf_makeHISATindex; gtf_makeBED12;
-              gtf_star; gtf_dupradar; gtf_featureCounts; gtf_stringtieFPKM }
+        .into { gtfFile }
 } else if( params.gff ){
-  gffFile = Channel.fromPath(params.gff)
-                   .ifEmpty { exit 1, "GFF annotation file not found: ${params.gff}" }
+    Channel
+        .fromPath(params.gff)
+        .ifEmpty { exit 1, "GFF annotation file not found: ${params.gff}" }
+        .into { gffFile }
 } else {
     exit 1, "No GTF or GFF3 annotation specified!"
 }
@@ -220,14 +221,32 @@ if(params.gff){
       file gff from gffFile
 
       output:
-      file "${gff.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12,
-            gtf_star, gtf_dupradar, gtf_featureCounts
+      file "${gff.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12, gtf_star, gtf_dupradar, gtf_featureCounts
+      file "${gff.baseName}.gff" into snpeff_gtf
 
       script:
       """
       gffread $gff -T -o ${gff.baseName}.gtf
       """
   }
+} else {
+  process convertGTFtoGFF {
+
+  input:
+  file gtf from gtfFile
+
+  output:
+
+  file "${gtf.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12, gtf_star, gtf_dupradar, gtf_featureCounts
+  file "${gtf.baseName}.gff" into snpeff_gtf
+
+  script:
+  """
+  gffread $gtf -o ${gff.baseName}.gff
+  """
+
+  }
+
 }
 
 /*
@@ -1042,7 +1061,7 @@ if (params.snpeffDb == 'build') {
 
    input:
      file genome from genome_file
-     file gff from gffFile
+     file gff from snpeff_gtf
 
    output:
      file "snpEff.config" into snpeff_config_file_dbBuild
