@@ -242,7 +242,7 @@ if(params.gff){
 
   script:
   """
-  gffread $gtf -o ${gff.baseName}.gff
+  gffread $gtf -o ${gtf.baseName}.gff
   """
 
   }
