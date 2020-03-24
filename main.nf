@@ -535,7 +535,7 @@ process srst2 {
     mlstdelim = params.mlst_db ? "--mlst_delimiter $params.mlst_delimiter" : ''
     """
     # /samtools-0.1.18/
-    SRST2_SAMTOOLS=/samtools-0.1.18/samtools
+    export SRST2_SAMTOOLS=/samtools-0.1.18/samtools
     echo $SRST2_SAMTOOLS
     getmlst.py --species "Mycobacteria spp."
     srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db Mycobacteria_spp..fasta --mlst_definitions mycobacteria.txt --mlst_delimiter '_' --min_coverage $srst_min_gene_cov --max_divergence $srst_max_gene_divergence
