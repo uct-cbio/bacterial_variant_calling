@@ -1115,7 +1115,7 @@ if (params.snpeffDb == 'build') {
 
 
 process Snpeff {
-  publishDir "${params.outdir}/SnpEff", mode: "link", overwrite: True
+  publishDir "${params.outdir}/SnpEff", mode: "link", overwrite: true
 
 
   input:
