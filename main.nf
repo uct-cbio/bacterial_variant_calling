@@ -886,17 +886,16 @@ if( params.vf_db ) {
 		tag { "Building index" }
 
 		input:
-        	file vf_db
 
-        	output:
-        	file 'vf.index*' into vf_index
-        	file 'VFDB_setB_nt.fas' into vf_fa
+        output:
+        file 'vf.index*' into vf_index
+        file 'VFDB_setB_nt.fas' into vf_fa
 
-        	"""
-        	wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz
-        	gunzip VFDB_setB_nt.fas.gz
-        	bowtie2-build VFDB_setB_nt.fas vf.index --threads ${threads}
-		    """
+        """
+        wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz
+        gunzip VFDB_setB_nt.fas.gz
+        bowtie2-build VFDB_setB_nt.fas vf.index --threads ${threads}
+		"""
 	}
 	/*
          * Align reads to virulence factor database with Bowtie2
