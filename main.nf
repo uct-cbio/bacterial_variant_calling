@@ -51,6 +51,7 @@ def helpMessage() {
     Other arguments:
         --snpeffDb                    Which SNPEff database to use ("build" to use your own)
         --SRAdir                      The directory where reads downloaded from the SRA will be stored
+        --vf_db                       Whether to look for virulence factors
         --outdir                      The output directory where the results will be saved
         --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
         -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
@@ -882,7 +883,7 @@ if( params.vf_db ) {
     * Build resistance database index with Bowtie2
     */
 	process BuildVFIndex {
-		tag { "${vf_db.baseName}" }
+		tag { "Building index" }
 
 		input:
         	file vf_db
