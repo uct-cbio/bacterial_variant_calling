@@ -932,10 +932,10 @@ if( params.vf_db ) {
         	set dataset_id, file(vf_bam) from vf_bam_files
 
         	output:
-        	set dataset_id, file("${dataset_id}_vf_gene_resistome.tsv") into vf_gene_level
+        	set dataset_id, file("${dataset_id}_raw_wgs_metrics.txt") into vf_gene_level
 
         	"""
-        	picard CollectWgsMetrics I=$vf_bam O=${dataset_id}_raw_wgs_metrics.txt R=${vf_db} INCLUDE_BQ_HISTOGRAM=true
+        	picard CollectWgsMetrics I=$vf_bam O=${dataset_id}_raw_wgs_metrics.txt R=${vf_db} INCLUDE_BQ_HISTOGRAM=true READ_NAME_REGEX=null
         	"""
 	}
 }
