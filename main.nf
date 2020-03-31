@@ -923,6 +923,7 @@ if( params.vf_db ) {
 	process VFResistome {
         	publishDir "${params.out_dir}/Resistome"
 
+            label 'mid_memory'
         	tag { dataset_id }
 
         	input:
