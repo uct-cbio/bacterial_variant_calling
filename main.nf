@@ -481,6 +481,7 @@ process trim_galore {
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
     val "$number" into sampleNumber_srst2
     val "$number" into sampleNumber
+    set number, file("*_R1.fq.gz"), file("*_R2.fq.gz") into vf_read_pairs
 
     script:
     c_r1 = clip_r1 > 0 ? "--clip_r1 ${clip_r1}" : ''
@@ -833,7 +834,7 @@ if( params.amr_db ) {
 
         	"""
         	bowtie2-build $amr_db amr.index --threads ${threads}
-		"""
+		    """
 	}
 
 	/*
@@ -871,15 +872,15 @@ if( params.amr_db ) {
         	set dataset_id, file("${dataset_id}_amr_gene_resistome.tsv") into amr_gene_level
 
         	"""
-		csa -ref_fp ${vf_db} -sam_fp ${vf_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_amr_gene_resistome.tsv"
+		    csa -ref_fp ${vf_db} -sam_fp ${vf_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_amr_gene_resistome.tsv"
         	"""
 	}
 }
 
 if( params.vf_db ) {
 	/*
-         * Build resistance database index with Bowtie2
-         */
+    * Build resistance database index with Bowtie2
+    */
 	process BuildVFIndex {
 		tag { "${vf_db.baseName}" }
 
@@ -888,10 +889,13 @@ if( params.vf_db ) {
 
         	output:
         	file 'vf.index*' into vf_index
+        	file 'VFDB_setB_nt.fas' into vf_fa
 
         	"""
-        	bowtie2-build $vf_db vf.index --threads ${threads}
-		"""
+        	wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz
+        	gunzip VFDB_setB_nt.fas.gz
+        	bowtie2-build VFDB_setB_nt.fas vf.index --threads ${threads}
+		    """
 	}
 	/*
          * Align reads to virulence factor database with Bowtie2
@@ -904,6 +908,7 @@ if( params.vf_db ) {
         	input:
         	set dataset_id, file(forward), file(reverse) from vf_read_pairs
         	file index from vf_index.first()
+        	file vf_fasta from vf_fa
 
         	output:
         	set dataset_id, file("${dataset_id}_vf_alignment.sam") into vf_sam_files
