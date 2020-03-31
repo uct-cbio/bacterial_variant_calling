@@ -894,7 +894,7 @@ if( params.vf_db ) {
         """
         wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz
         gunzip VFDB_setB_nt.fas.gz
-        bowtie2-build VFDB_setB_nt.fas vf.index --threads ${threads}
+        bowtie2-build VFDB_setB_nt.fas vf.index
 		"""
 	}
 	/*
