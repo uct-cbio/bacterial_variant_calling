@@ -926,7 +926,7 @@ if( params.vf_db ) {
         	tag { dataset_id }
 
         	input:
-        	file vf_db
+        	file vf_db from vf_fa
         	set dataset_id, file(vf_sam) from vf_sam_files
 
         	output:
