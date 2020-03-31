@@ -889,12 +889,13 @@ if( params.vf_db ) {
 
         output:
         file 'vf.index*' into vf_index
-        file 'VFDB_setB_nt.fas' into vf_fa
+        file 'VFDB_setB_nt.fa' into vf_fa
 
         """
         wget http://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz
         gunzip VFDB_setB_nt.fas.gz
-        bowtie2-build VFDB_setB_nt.fas vf.index
+        mv VFDB_setB_nt.fas VFDB_setB_nt.fa
+        bowtie2-build VFDB_setB_nt.fa vf.index
 		"""
 	}
 	/*
@@ -934,7 +935,7 @@ if( params.vf_db ) {
         	set dataset_id, file("${dataset_id}_vf_gene_resistome.tsv") into vf_gene_level
 
         	"""
-        	picard -XX:ParallelGCThreads=5 -Xmx16G -Xms16G CollectWgsMetrics I=$vf_bam O=${dataset_id}_raw_wgs_metrics.txt R=${vf_db} INCLUDE_BQ_HISTOGRAM=true
+        	picard CollectWgsMetrics I=$vf_bam O=${dataset_id}_raw_wgs_metrics.txt R=${vf_db} INCLUDE_BQ_HISTOGRAM=true
         	"""
 	}
 }
