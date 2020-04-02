@@ -1246,7 +1246,7 @@ process BuildConesnsusSequence {
 
 
 
-if( aligner == mafft) {
+if( aligner == 'mafft') {
 
   process mafft_alignment {
 
@@ -1281,7 +1281,6 @@ if( aligner == mafft) {
 }
 
 
-
 process '4D_run_RAxML' {
 
   publishDir "${params.outdir}/RAxML", mode: "link", overwrite: false
@@ -1298,57 +1297,6 @@ process '4D_run_RAxML' {
   """
 }
 
-
-if( params.draft ) {
-	/*
-	 * Create configuration file for kSNP3 using the draft assemblies and user-input reference genome
-	 */
-	process kSNPDraftAndGenomeConfiguration {
-		echo true
-
-		input:
-                file draft from draft_genomes
-
-                output:
-                file("genome_paths.txt") into genome_config
-
-                shell:
-                '''
-                #!/bin/sh
-                echo "!{genome}\t!{genome.baseName}" > genome_paths.txt
-                for d in !{draft};
-                do
-                        echo "!{draft_path}/${d}\t${d%.*}" >> genome_paths.txt
-                done
-                '''
-	}
-}
-
-else {
-	/*
-	 * Create configuration file for kSNP3 using the user-input reference genome
-	 */
-	process kSNPGenomeConfiguration {
-		echo true
-
-		storeDir 'temporary_files'
-
-		input:
-		file genome from genome_file
-
-		output:
-		file("genome_paths.txt") into genome_config
-		file("$genome") into kchooser_genome
-
-		shell:
-		'''
-		#!/bin/sh
-		base=`echo !{genome} | cut -f1 -d '.'`
-		fp=`readlink !{genome}`
-		echo "${fp}\t${base}" > genome_paths.txt
-		'''
-	}
-}
 
 
 /*
