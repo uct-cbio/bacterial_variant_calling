@@ -1230,7 +1230,7 @@ if( aligner == 'mafft') {
   process mafft_alignment {
 
     input:
-      file from consensus_files.collect()
+      file seq from consensus_files.collect()
     output:
       file "*.phy" into phylip_file
     script:
@@ -1246,7 +1246,7 @@ if( aligner == 'mafft') {
   process muscle_alignment {
 
     input:
-      file from consensus_files.collect()
+      file seq from consensus_files.collect()
     output:
       file "*.phy" into phylip_file
     script:
