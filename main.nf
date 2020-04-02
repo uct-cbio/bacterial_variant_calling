@@ -67,7 +67,6 @@ def helpMessage() {
  * SET UP CONFIGURATION VARIABLES
  */
 
-// HARD CODED TO BE INTERGRATED
 
 aligner = 'mafft'
 
