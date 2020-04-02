@@ -1221,8 +1221,9 @@ process '4A_bgzip_vcf' {
   """
 }
 
-
-
+/*
+ * Align consensus sequences
+ */
 
 if( aligner == 'mafft') {
 
@@ -1308,7 +1309,7 @@ process multiqc {
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
-    multiqc . -f $rtitle $rfilename --config $multiqc_config \\
+    multiqc . -f $rtitle $rfilename --config $multiqc_config \
         -m custom_content -m picard -m preseq -m rseqc -m hisat2 -m star -m cutadapt -m fastqc
     """
 }
