@@ -1240,8 +1240,6 @@ if( aligner == 'mafft') {
     """
 
   }
-
-
 } else {
 
   process muscle_alignment {
