@@ -1241,19 +1241,6 @@ if( aligner == 'mafft') {
     """
 
   }
-} else {
-
-  process muscle_alignment {
-
-    input:
-      file from consensus_files.collect()
-    output:
-      file "*.phy" into phylip_file
-    script:
-    """
-    cat *.fa > combined.fasta
-    muscle -in combined.fasta -out aligned.fasta
-    convbioseq -i fasta phylip aligned.fasta
 }
 
 
@@ -1309,7 +1296,7 @@ process multiqc {
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
-    multiqc . -f $rtitle $rfilename --config $multiqc_config \
+    multiqc . -f $rtitle $rfilename --config $multiqc_config \\
         -m custom_content -m picard -m preseq -m rseqc -m hisat2 -m star -m cutadapt -m fastqc
     """
 }
