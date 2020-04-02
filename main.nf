@@ -1207,23 +1207,22 @@ process BuildConesnsusSequence {
  * Process 4A: Create phylogenetic tree
  */
 
-
-process '4A_bgzip_vcf' {
-  input:
-    file vcf from snp_vcfs_bgzip
-  output:
-    file "${vcf}.gz" into gz_vcfs
-    file "${vcf}.gz.tbi" into tbi_vcfs
-  script:
-  """
-  bgzip -c $vcf > ${vcf}.gz
-  tabix ${vcf}.gz
-  """
-}
-
 /*
  * Align consensus sequences
  */
+
+process mafft_alignment {
+  input:
+    file seq from consensus_files.collect()
+  output:
+    file "*.phy" into phylip_file
+  script:
+  """
+  cat *.fa > combined.fasta
+  mafft combined.fasta > aligned.fasta
+  convbioseq -i fasta phylip aligned.fasta
+  """
+}
 
 
 process '4D_run_RAxML' {
@@ -1231,13 +1230,14 @@ process '4D_run_RAxML' {
   publishDir "${params.outdir}/RAxML", mode: "link", overwrite: false
 
   input:
+    file inphy from phylip_file
     val threads from threads
   output:
     file "*.outFile" into RAxML_out
 
   script:
   """
-  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s 'as' -n outFile -m GTRCATX -T $threads -f a -x 123 -N autoMRE -p 456
+  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 123 -N autoMRE -p 456
   """
 }
 
