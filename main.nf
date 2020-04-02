@@ -1225,44 +1225,12 @@ process '4A_bgzip_vcf' {
  * Align consensus sequences
  */
 
-if( aligner == 'mafft') {
-
-  process mafft_alignment {
-
-    input:
-      file seq from consensus_files.collect()
-    output:
-      file "*.phy" into phylip_file
-    script:
-    """
-    cat *.fa > combined.fasta
-    mafft combined.fasta > aligned.fasta
-    convbioseq -i fasta phylip aligned.fasta
-    """
-
-  }
-} else {
-
-  process muscle_alignment {
-
-    input:
-      file seq from consensus_files.collect()
-    output:
-      file "*.phy" into phylip_file
-    script:
-    """
-    cat *.fa > combined.fasta
-    muscle -in combined.fasta -out aligned.fasta
-    convbioseq -i fasta phylip aligned.fasta
-}
-
 
 process '4D_run_RAxML' {
 
   publishDir "${params.outdir}/RAxML", mode: "link", overwrite: false
 
   input:
-    file inphy from phylip_file
     val threads from threads
   output:
     file "*.outFile" into RAxML_out
