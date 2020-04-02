@@ -67,6 +67,10 @@ def helpMessage() {
  * SET UP CONFIGURATION VARIABLES
  */
 
+// HARD CODED TO BE INTERGRATED
+
+aligner = 'mafft'
+
 // Configurable variables
 params.name = false
 params.project = false
@@ -842,7 +846,7 @@ if( params.amr_db ) {
          * Align reads to resistance database with Bowtie2
          */
 	process AMRAlignment {
-        	publishDir "${params.out_dir}/Alignment", pattern: "*.bam"
+        	publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
         	tag { dataset_id }
 
@@ -861,7 +865,7 @@ if( params.amr_db ) {
 	}
 
 	process AMRResistome {
-        	publishDir "${params.out_dir}/Resistome"
+        	publishDir "${params.outdir}/Resistome"
 
         	tag { dataset_id }
 
@@ -904,7 +908,7 @@ if( params.vf_db ) {
          * Align reads to virulence factor database with Bowtie2
          */
 	process VFAlignment {
-        	publishDir "${params.out_dir}/Alignment", pattern: "*.bam"
+        	publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
         	tag { dataset_id }
 
@@ -924,7 +928,7 @@ if( params.vf_db ) {
 	}
 
 	process VFResistome {
-        	publishDir "${params.out_dir}/Resistome"
+        	publishDir "${params.outdir}/Resistome"
 
             label 'high_memory'
         	tag { dataset_id }
@@ -963,7 +967,7 @@ if( params.plasmid_db ) {
          * Align reads to plasmid database with Bowtie2
          */
 	process PlasmidAlignment {
-        	publishDir "${params.out_dir}/Alignment", pattern: "*.bam"
+        	publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
         	tag { dataset_id }
 
@@ -982,7 +986,7 @@ if( params.plasmid_db ) {
 	}
 
 	process PlasmidResistome {
-        	publishDir "${params.out_dir}/Resistome"
+        	publishDir "${params.outdir}/Resistome"
 
         	tag { dataset_id }
 
@@ -1009,6 +1013,9 @@ if( params.plasmid_db ) {
 
 
 process '3A_call_variants' {
+
+  publishDir "${params.outdir}/variants", mode: "link", overwrite: true
+
   input:
     file genome from genome_file
     file sample_bam from dedup_bamfiles
@@ -1218,28 +1225,34 @@ process '4A_bgzip_vcf' {
 }
 
 
+process BuildConesnsusSequence {
+	tag { dataset_id }
 
-process '4B_merge_vcf_files' {
-  input:
-    file gz_vcf from gz_vcfs.collect()
-    file tbi_index from tbi_vcfs.collect()
-  output:
-    file "out_merged.vcf" into merged_vcf
-  script:
-  """
-  bcftools merge $gz_vcf -o out_merged.vcf
-  """
+	publishDir "${params.out_dir}/Consensus"
+
+	input:
+	  file genome
+      file gz_vcf from gz_vcfs
+      file tbi_index from tbi_vcfs
+
+	output:
+	  set dataset_id, file("${dataset_id}_consensus.fa") into consensus_files
+
+    script:
+	"""
+	cat $genome | bcftools consensus $gz_vcf > ${dataset_id}_consensus.fa
+	"""
 }
 
 
 process '4C_convert_to_phylip_format' {
   input:
-    file merged_vcf_file from merged_vcf
+    file  from consensus_files.collect()
   output:
     file "*.phy" into phylip_file
   script:
   """
-  python3 /vcf2fasta/vcf2fasta.py -i $merged_vcf_file -o converted -q $vcf_qual_cutoff
+  clustalo
   convbioseq -i fasta phylip converted.fa
   """
 }
@@ -1261,6 +1274,40 @@ process '4D_run_RAxML' {
   """
 }
 
+
+if( aligner == mafft) {
+
+  process mafft_alignment {
+
+    input:
+      file  from consensus_files.collect()
+    output:
+      file "*.phy" into phylip_file
+    script:
+    """
+    cat *.fa > combined.fasta
+    mafft combined.fasta > aligned.fasta
+    convbioseq -i fasta phylip aligned.fasta
+    """
+
+  }
+
+
+} else {
+
+  process muscle_alignment {
+
+    input:
+      file  from consensus_files.collect()
+    output:
+      file "*.phy" into phylip_file
+    script:
+    """
+    cat *.fa > combined.fasta
+    muscle -in combined.fasta -out aligned.fasta
+    convbioseq -i fasta phylip aligned.fasta
+
+}
 
 if( params.draft ) {
 	/*

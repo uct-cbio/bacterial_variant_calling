@@ -212,17 +212,15 @@ RUN conda install -c bioconda deeptools=3.2.0
 RUN conda install -c bioconda sra-tools
 RUN conda install -c bioconda freebayes
 RUN conda install -c bioconda bioconductor-dupradar=1.12.1
-
+RUN conda install -c bioconda clustalo
+RUN conda install -c bioconda muscle
+RUN conda install -c bioconda mafft
 RUN conda install -c bioconda samtools
 RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2 && tar xvfj samtools-0.1.18.tar.bz2 && cd samtools-0.1.18 && make
 
 
 #RUN conda install -c bioconda preseq
 
-# Install vcf2fasta
-RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
-RUN ln -s /vcf2fasta/vcf2fasta.py /usr/local/bin/vcf2fasta.py
-RUN ln -s /vcf2fasta/process_samples.py /usr/local/bin/process_samples.py
 
 # Build this image
 #docker build -t bacterial_genomics -f BacDock .
