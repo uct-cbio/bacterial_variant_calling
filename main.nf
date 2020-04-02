@@ -1225,7 +1225,7 @@ process '4A_bgzip_vcf' {
  * Align consensus sequences
  */
 
-if( aligner == mafft) {
+if( aligner == 'mafft') {
 
   process mafft_alignment {
 
