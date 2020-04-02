@@ -1241,6 +1241,19 @@ if( aligner == 'mafft') {
     """
 
   }
+} else {
+
+  process muscle_alignment {
+
+    input:
+      file from consensus_files.collect()
+    output:
+      file "*.phy" into phylip_file
+    script:
+    """
+    cat *.fa > combined.fasta
+    muscle -in combined.fasta -out aligned.fasta
+    convbioseq -i fasta phylip aligned.fasta
 }
 
 
