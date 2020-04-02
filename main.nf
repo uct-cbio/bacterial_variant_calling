@@ -1225,7 +1225,7 @@ process '4A_bgzip_vcf' {
 }
 
 
-process BuildConesnsusSequence {
+process BuildConsensusSequence {
 	tag { dataset_id }
 
 	publishDir "${params.out_dir}/Consensus"
@@ -1244,58 +1244,6 @@ process BuildConesnsusSequence {
 	"""
 }
 
-
-
-if( aligner == 'mafft') {
-
-  process mafft_alignment {
-
-    input:
-      file from consensus_files.collect()
-    output:
-      file "*.phy" into phylip_file
-    script:
-    """
-    cat *.fa > combined.fasta
-    mafft combined.fasta > aligned.fasta
-    convbioseq -i fasta phylip aligned.fasta
-    """
-
-  }
-
-
-} else {
-
-  process muscle_alignment {
-
-    input:
-      file from consensus_files.collect()
-    output:
-      file "*.phy" into phylip_file
-    script:
-    """
-    cat *.fa > combined.fasta
-    muscle -in combined.fasta -out aligned.fasta
-    convbioseq -i fasta phylip aligned.fasta
-
-}
-
-
-process '4D_run_RAxML' {
-
-  publishDir "${params.outdir}/RAxML", mode: "link", overwrite: false
-
-  input:
-    file inphy from phylip_file
-    val threads from threads
-  output:
-    file "*.outFile" into RAxML_out
-  
-  script:
-  """
-  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 123 -N autoMRE -p 456
-  """
-}
 
 
 
