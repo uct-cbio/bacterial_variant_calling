@@ -1212,6 +1212,9 @@ process BuildConesnsusSequence {
  */
 
 process mafft_alignment {
+
+  label 'high_memory'
+
   input:
     file seq from consensus_files.collect()
   output:
@@ -1219,7 +1222,7 @@ process mafft_alignment {
   script:
   """
   cat *.fa > combined.fasta
-  mafft combined.fasta > aligned.fasta
+  mafft --retree 2 --maxiterate 2 combined.fasta > aligned.fasta
   convbioseq -i fasta phylip aligned.fasta
   """
 }
