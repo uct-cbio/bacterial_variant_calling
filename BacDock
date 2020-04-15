@@ -40,6 +40,8 @@ RUN pip install biopython
 RUN pip install git+https://github.com/katholt/srst2
 RUN pip install RSeQC
 RUN pip install multiqc
+RUN pip install venn
+RUN pip install pandas
 
 # install Picard Tools
 RUN curl -fksSL https://github.com/broadinstitute/picard/releases/download/2.9.0/picard.jar > /usr/local/bin/picard.jar && \
