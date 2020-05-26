@@ -116,14 +116,6 @@ RUN cd /opt && \
 	rm /opt/jellyfish-2.2.6.tar.gz
 
 
-
-# Install Figtree
-RUN cd /opt && \
-	git clone https://github.com/cdeanj/figtree.git && \
-	chmod u+x figtree/lib/figtree.jar && \
-	cd /
-
-
 # Install kSNP3 and dependencies
 RUN cd /opt && \
 	apt-get install -y tcsh && \
@@ -198,7 +190,6 @@ RUN apt-get install -y curl grep sed dpkg && \
 
 
 RUN conda install -c bioconda fastqc
-
 RUN conda install -c bioconda picard=2.18.27
 RUN conda install -c bioconda conda-forge::r-data.table=1.12.0
 RUN conda install -c bioconda conda-forge::r-gplots=3.0.1.1
@@ -212,16 +203,35 @@ RUN conda install -c bioconda fastx_toolkit
 RUN conda install -c bioconda gffread=0.9.12
 RUN conda install -c bioconda deeptools=3.2.0
 RUN conda install -c bioconda sra-tools
-RUN conda install -c bioconda freebayes
 RUN conda install -c bioconda bioconductor-dupradar=1.12.1
+RUN conda install -c bioconda samtools
+
+# Alignment
 RUN conda install -c bioconda clustalo
 RUN conda install -c bioconda muscle
 RUN conda install -c bioconda mafft
-RUN conda install -c bioconda samtools
+
+# Phylogenetics
+RUN conda install -c bioconda freebayes
+RUN conda install -c bioconda beast
+RUN conda install -c bioconda phyml
+
+# Clustering
+
+
 RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2 && tar xvfj samtools-0.1.18.tar.bz2 && cd samtools-0.1.18 && make
 
 
-#RUN conda install -c bioconda preseq
+# Visualisation
+RUN conda install -c bioconda circos
+
+
+# Install Figtree
+RUN cd /opt && \
+	git clone https://github.com/cdeanj/figtree.git && \
+	chmod u+x figtree/lib/figtree.jar && \
+	cd ~
+
 
 # Install vcf2fasta
 RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
