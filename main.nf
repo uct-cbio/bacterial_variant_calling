@@ -203,7 +203,7 @@ vcf_qual_cutoff = params.vcf_qual_cutoff
 srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
 // From https://pubmlst.org/data/dbases.xml
-mlst_species_srst2 = "Streptococcus_pneumoniae"
+mlst_species_srst2 = "Streptococcus pneumoniae"
 mlst_definitions_srst2 = "spneumoniae"
 mlst_seperator_srst2 = "_"
 
@@ -544,11 +544,13 @@ process srst2 {
     mlstDB = params.mlst_db ? "--mlst_db $mlst_db" : ''
     mlstdef = params.mlst_db ? "--mlst_definitions $mlst_definitions" : ''
     mlstdelim = params.mlst_db ? "--mlst_delimiter $params.mlst_delimiter" : ''
+    mlstfasta = mlst_species_srst2.replace(" ", "_")
+
     """
     # /samtools-0.1.18/
     export SRST2_SAMTOOLS="/samtools-0.1.18/samtools"
     getmlst.py --species "${mlst_species_srst2}"
-    srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db ${mlst_species_srst2}.fasta --mlst_definitions ${mlst_definitions_srst2}.txt --mlst_delimiter '_' --min_coverage $srst_min_gene_cov --max_divergence $srst_max_gene_divergence
+    srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db ${mlstfasta}.fasta --mlst_definitions ${mlst_definitions_srst2}.txt --mlst_delimiter '_' --min_coverage $srst_min_gene_cov --max_divergence $srst_max_gene_divergence
     srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
     """
 }
