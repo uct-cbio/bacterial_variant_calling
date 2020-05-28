@@ -203,8 +203,9 @@ vcf_qual_cutoff = params.vcf_qual_cutoff
 srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
 // From https://pubmlst.org/data/dbases.xml
-mlst_species_srst2 = "Streptococcus pneumoniae"
+mlst_species_srst2 = "Streptococcus_pneumoniae"
 mlst_definitions_srst2 = "spneumoniae"
+mlst_seperator_srst2 = "_"
 
 
 // Header log info
@@ -533,6 +534,7 @@ process srst2 {
     val srst_max_gene_divergence
     val mlst_species_srst2
     val mlst_definitions_srst2
+    val mlst_seperator_srst2
 
     output:
 	file("${sampleNumber_srst2}_srst2*")
