@@ -199,6 +199,7 @@ threads         = 4
 aligner         = params.aligner
 variant_caller  = params.variant_caller
 vcf_qual_cutoff = params.vcf_qual_cutoff
+mlst_species_srst2 = "TO ADD"
 
 srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
@@ -529,6 +530,7 @@ process srst2 {
     val sampleNumber_srst2
     val srst_min_gene_cov
     val srst_max_gene_divergence
+    val mlst_species_srst2
 
     output:
 	file("${sampleNumber_srst2}_srst2*")
@@ -541,7 +543,7 @@ process srst2 {
     """
     # /samtools-0.1.18/
     export SRST2_SAMTOOLS="/samtools-0.1.18/samtools"
-    #getmlst.py --species $ > put in var "Mycobacteria spp."
+    #getmlst.py --species $ > "${mlst_species_srst2}"
     #srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db Mycobacteria_spp..fasta --mlst_definitions mycobacteria.txt --mlst_delimiter '_' --min_coverage $srst_min_gene_cov --max_divergence $srst_max_gene_divergence
     #srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
     """
