@@ -227,7 +227,7 @@ if(params.gff){
 
       output:
       file "${gff.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12, gtf_star, gtf_dupradar, gtf_featureCounts
-      file "${gff.baseName}.gff*" into snpeff_gff
+      file "${gff.baseName}.gff" into snpeff_gff
 
       script:
       """
