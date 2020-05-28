@@ -543,7 +543,7 @@ process srst2 {
     """
     # /samtools-0.1.18/
     export SRST2_SAMTOOLS="/samtools-0.1.18/samtools"
-    #getmlst.py --species $ > "${mlst_species_srst2}"
+    #getmlst.py --species "${mlst_species_srst2}"
     #srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db Mycobacteria_spp..fasta --mlst_definitions mycobacteria.txt --mlst_delimiter '_' --min_coverage $srst_min_gene_cov --max_divergence $srst_max_gene_divergence
     #srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --min_coverage $params.min_gene_cov --max_divergence $params.max_gene_divergence $mlstDB $mlstdef $mlstdelim $geneDB
     """
