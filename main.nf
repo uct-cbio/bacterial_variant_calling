@@ -199,6 +199,7 @@ threads         = 4
 aligner         = params.aligner
 variant_caller  = params.variant_caller
 vcf_qual_cutoff = params.vcf_qual_cutoff
+file_ext = 'int'
 
 srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
@@ -480,6 +481,19 @@ process trim_galore {
     set number, file(R1), file(R2) from newSampleChannel
 
     output:
+
+    if (file_ext == 'R1'){
+        file "*_R1_001.fq.gz" into forwardTrimmed
+        file "*_R2_001.fq.gz" into reverseTrimmed
+        file "*_R1_001.fq.gz" into forward_trimmed_reads_for_srst2
+        file "*_R2_001.fq.gz" into reverse_trimmed_reads_for_srst2
+    } else {
+        file "*_1.fq.gz" into forwardTrimmed
+        file "*_2.fq.gz" into reverseTrimmed
+        file "*_1.fq.gz" into forward_trimmed_reads_for_srst2
+        file "*_2.fq.gz" into reverse_trimmed_reads_for_srst2
+    }
+
     file "*_R1.fq.gz" into forwardTrimmed
     file "*_R2.fq.gz" into reverseTrimmed
     file "*_R1.fq.gz" into forward_trimmed_reads_for_srst2
@@ -506,8 +520,8 @@ process trim_galore {
         rename 's/val_1_001/R1_001/' *.fq.gz
         rename 's/val_2_001/R2_001/' *.fq.gz
 
-        rename 's/val_1/1/' *.fq.gz
-        rename 's/val_2/2/' *.fq.gz
+        rename 's/_val_1//' *.fq.gz
+        rename 's/_val_2//' *.fq.gz
         """
     }
 }
