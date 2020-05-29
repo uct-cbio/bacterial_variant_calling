@@ -501,8 +501,6 @@ process trim_galore {
         """
     } else {
         """
-        # 25515_8#139_1_val_1.fq.gz
-        # 25515_8#139_1_val_1_001.fq.gz
         trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $R1 $R2
 
         rename 's/val_1_001/R1_001/' *.fq.gz
