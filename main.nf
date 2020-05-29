@@ -481,7 +481,6 @@ process trim_galore {
     set number, file(R1), file(R2) from newSampleChannel
 
     output:
-
     if (file_ext == 'R1'){
         file "*_R1_001.fq.gz" into forwardTrimmed
         file "*_R2_001.fq.gz" into reverseTrimmed
@@ -493,11 +492,6 @@ process trim_galore {
         file "*_1.fq.gz" into forward_trimmed_reads_for_srst2
         file "*_2.fq.gz" into reverse_trimmed_reads_for_srst2
     }
-
-    file "*_R1.fq.gz" into forwardTrimmed
-    file "*_R2.fq.gz" into reverseTrimmed
-    file "*_R1.fq.gz" into forward_trimmed_reads_for_srst2
-    file "*_R2.fq.gz" into reverse_trimmed_reads_for_srst2
     file "*trimming_report.txt" into trimgalore_results
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
     val "$number" into sampleNumber_srst2
