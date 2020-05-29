@@ -481,22 +481,17 @@ process trim_galore {
     set number, file(R1), file(R2) from newSampleChannel
 
     output:
-    if (file_ext == 'R1'){
-        file "*_R1_001.fq.gz" into forwardTrimmed
-        file "*_R2_001.fq.gz" into reverseTrimmed
-        file "*_R1_001.fq.gz" into forward_trimmed_reads_for_srst2
-        file "*_R2_001.fq.gz" into reverse_trimmed_reads_for_srst2
-    } else {
-        file "*_1.fq.gz" into forwardTrimmed
-        file "*_2.fq.gz" into reverseTrimmed
-        file "*_1.fq.gz" into forward_trimmed_reads_for_srst2
-        file "*_2.fq.gz" into reverse_trimmed_reads_for_srst2
-    }
+
+    file "*_1.fq.gz" into forwardTrimmed
+    file "*_2.fq.gz" into reverseTrimmed
+    file "*_1.fq.gz" into forward_trimmed_reads_for_srst2
+    file "*_2.fq.gz" into reverse_trimmed_reads_for_srst2
+
     file "*trimming_report.txt" into trimgalore_results
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
     val "$number" into sampleNumber_srst2
     val "$number" into sampleNumber
-    set number, file("*_R1.fq.gz"), file("*_R2.fq.gz") into vf_read_pairs
+    set number, file("*_1.fq.gz"), file("*_2.fq.gz") into vf_read_pairs
 
     script:
     c_r1 = clip_r1 > 0 ? "--clip_r1 ${clip_r1}" : ''
@@ -511,8 +506,8 @@ process trim_galore {
         """
         trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $R1 $R2
 
-        rename 's/val_1_001/R1_001/' *.fq.gz
-        rename 's/val_2_001/R2_001/' *.fq.gz
+        rename 's/val_1_001/1/' *.fq.gz
+        rename 's/val_2_001/2/' *.fq.gz
 
         rename 's/_val_1//' *.fq.gz
         rename 's/_val_2//' *.fq.gz
