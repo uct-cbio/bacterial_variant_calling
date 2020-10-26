@@ -2,11 +2,11 @@
 
 /*
 ========================================================================================
-                         nf-core/rnaseq
+                         uct-cbio/bacterial_variant_calling
 ========================================================================================
- nf-core Analysis Pipeline.
+ Based on the nf-core Analysis Pipeline.
  #### Homepage / Documentation
- TBD
+ https://github.com/uct-cbio/bacterial_variant_calling
 ----------------------------------------------------------------------------------------
 
 
@@ -45,7 +45,7 @@ def helpMessage() {
         --aligner                     Currently only bwa-mem
         --variant_caller              Currently only freebayes
         --srst_min_gene_cov           Minimum coverage for srst2 (default 90)
-        --srst_max_gene_divergence	  Maximum %divergence cutoff for gene reporting (default 10)
+        --srst_max_gene_divergence    Maximum %divergence cutoff for gene reporting (default 10)
 
 
     Other arguments:
@@ -218,8 +218,11 @@ summary['Reads']            = params.reads
 summary['Data Type']        = params.singleEnd ? 'Single-End' : 'Paired-End'
 
 
+
 /*
- * PREPROCESSING - Convert GFF3 to GTF
+ *  ------------------------------------- PREPROCESSING -------------------------------------
+ *
+ * Convert GFF3 to GTF
  */
 if(params.gff){
   process convertGFFtoGTF {
@@ -258,7 +261,7 @@ if(params.gff){
 }
 
 /*
- * PREPROCESSING - Build BED12 file
+ * Build BED12 file
  */
 if(!params.bed12){
     process makeBED12 {
@@ -281,6 +284,7 @@ if(!params.bed12){
 
 
 // Check the hostnames against configured profiles
+
 checkHostname()
 
 def create_workflow_summary(summary) {
@@ -330,8 +334,8 @@ process get_software_versions {
 }
 
 
-/**********
- * PART 1: Data preparation
+/*
+ * ------------------------------------- ANALYSIS PART 1: Data preparation -------------------------------------
  *
  * Process 1A: Create a FASTA genome index (.fai) with samtools for GATK
  */
@@ -392,6 +396,9 @@ process '1C_prepare_genome_bwa' {
   """
 }
 
+/*
+ * Process 1D: Prepare and download samples as per sample sheet
+ */
 
 process '1D_prepare_samples' {
 
@@ -414,18 +421,13 @@ newSampleSheet
   .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannel }
 
-newSampleSheet
-  .splitCsv(header:true)
-  .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
-  .set { newSampleChannelFastQC }
-
 
 
 /*
- * Process 1F: FastQC -  NEED TO EDIT
+ * Process 1E: FastQC
  */
 
- process fastqc {
+ process '1E_fastqc' {
     tag "$name"
     publishDir "${params.outdir}/fastqc", mode: 'copy',
         saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
@@ -444,28 +446,12 @@ newSampleSheet
 }
 
 
-/*
-*process '1E_trim_samples' {
-*
-*  input:
-*    set number, file(R1), file(R2) from newSampleChannel
-*  output:
-*    file "sample_x_forward_paired.trimmed.fq" into forwardTrimmed
-*    file "sample_x_reverse_paired.trimmed.fq" into reverseTrimmed
-*    val "$number" into sampleNumber
-*  script:
-*  """
-*  java -jar /Trimmomatic-0.38/trimmomatic-0.38.jar PE -threads 8 -phred33 $R1 $R2 sample_x_forward_paired.trimmed.fq output_forward_unpaired.fq sample_x_reverse_paired.trimmed.fq output_reverse_unpaired.fq SLIDINGWINDOW:4:18 MINLEN:36
-*  """
-*
-*}
-*/
-
 
 /*
- * STEP 2 - Trim Galore! -- TO REPLACE Trimmomatic
+ * Process 1F: Trim Galore!
  */
-process trim_galore {
+
+process '1F_trim_galore' {
     label 'low_memory'
     tag "$name"
     publishDir "${params.outdir}/trim_galore", mode: 'copy',
@@ -481,7 +467,6 @@ process trim_galore {
     set number, file(R1), file(R2) from newSampleChannel
 
     output:
-
     file "*_1.fq.gz" into forwardTrimmed
     file "*_2.fq.gz" into reverseTrimmed
     file "*_1.fq.gz" into forward_trimmed_reads_for_srst2
@@ -516,19 +501,14 @@ process trim_galore {
 }
 
 
-
 /*
- *  END OF PART 1
- *********/
-
-
-/*
+ * ------------------------------------- ANALYSIS PART 2: Alignment -------------------------------------
  *
- * Step 1: srst2 (run per sample)  -- edit needed
+ * Process 2A: srst2 (run per sample)
  * https://github.com/kviljoen/uct-srst2/blob/master/main.nf
  */
 
-process srst2 {
+process '2A_srst2' {
     tag { "srst2.${sampleNumber_srst2}" }
     publishDir "${params.outdir}/srst2_mlst", mode: "copy"
     label 'high_memory'
@@ -544,7 +524,7 @@ process srst2 {
     val mlst_seperator_srst2
 
     output:
-	file("${sampleNumber_srst2}_srst2*")
+    file("${sampleNumber_srst2}_srst2__mlst*")
 
     script:
     geneDB = params.gene_db ? "--gene_db $gene_db" : ''
@@ -563,17 +543,11 @@ process srst2 {
 }
 
 
-
-
-/**********
- * PART 2: Mapping
- *
- * Process 2A: Align reads to the reference genome
+/*
+ * Process 2B: Align reads to the reference genome
  */
 
-
-
-process '2A_read_mapping' {
+process '2B_read_mapping' {
   input:
     file forwardTrimmed
     file reverseTrimmed
@@ -608,9 +582,10 @@ process '2A_read_mapping' {
 
 
 /*
- * STEP 4 - RSeQC analysis -- EDIT NEEDED
+ * Process 2C: RSeQC analysis -- EDITS NEEDED
  */
-process rseqc {
+
+process '2C_rseqc' {
     label 'high_memory'
     tag "${bam_rseqc.baseName - '.sorted'}"
     publishDir "${params.outdir}/rseqc" , mode: 'copy',
@@ -664,8 +639,9 @@ process rseqc {
 
 
 /*
- * Step 4.1 Subsample the BAM files if necessary
+ * Process 2D: Subsample the BAM files if necessary
  */
+
 bam_forSubsamp
     .filter { it.size() > params.subsampFilesizeThreshold }
     .map { [it, params.subsampFilesizeThreshold / it.size() ] }
@@ -674,7 +650,7 @@ bam_skipSubsamp
     .filter { it.size() <= params.subsampFilesizeThreshold }
     .set{ bam_skipSubsampFiltered }
 
-process bam_subsample {
+process '2D_bam_subsample' {
     tag "${bam.baseName - '.sorted'}"
 
     input:
@@ -691,9 +667,10 @@ process bam_subsample {
 
 
 /*
- * Step 4.2 Rseqc genebody_coverage -- edit needed
+ * Process 2E: Rseqc genebody_coverage -- EDITS NEEDED
  */
-process genebody_coverage {
+
+process '2E_genebody_coverage' {
     label 'mid_memory'
     tag "${bam.baseName - '.sorted'}"
        publishDir "${params.outdir}/rseqc" , mode: 'copy',
@@ -725,9 +702,6 @@ process genebody_coverage {
     mv log.txt ${bam.baseName}.rseqc.log.txt
     """
 }
-
-
-
 
 
 /*
@@ -828,14 +802,48 @@ process dupradar {
  * STEP 9 - Merge featurecounts
  */
 
-/*
- *  END OF PART 2
- *********/
-
 
 /*
- *  Virulence DB stuff
- *********/
+ * ------------------------------------ ANALYSIS PART 3: Virulence and DB analysis ------------------------------------
+ *
+ * Process 3A: srst2 (run per sample)
+ * https://github.com/kviljoen/uct-srst2/blob/master/main.nf
+ */
+
+process '3A_srst2' {
+    tag { "srst2.${sampleNumber_srst2}" }
+    publishDir "${params.outdir}/srst2_mlst", mode: "copy"
+    label 'high_memory'
+
+    input:
+    file forward_trimmed_reads_for_srst2
+    file reverse_trimmed_reads_for_srst2
+    val sampleNumber_srst2
+    val srst_min_gene_cov
+    val srst_max_gene_divergence
+    val mlst_species_srst2
+    val mlst_definitions_srst2
+    val mlst_seperator_srst2
+
+    output:
+    file("${sampleNumber_srst2}_srst2__mlst*")
+
+    script:
+    geneDB = params.gene_db ? "--gene_db $gene_db" : ''
+    mlstDB = params.mlst_db ? "--mlst_db $mlst_db" : ''
+    mlstdef = params.mlst_db ? "--mlst_definitions $mlst_definitions" : ''
+    mlstdelim = params.mlst_db ? "--mlst_delimiter $params.mlst_delimiter" : ''
+    mlstfasta = mlst_species_srst2.replace(" ", "_")
+
+    """
+    # /samtools-0.1.18/
+    export SRST2_SAMTOOLS="/samtools-0.1.18/samtools"
+    getmlst.py --species "${mlst_species_srst2}"
+    srst2 --output ${sampleNumber_srst2}_srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --mlst_db ${mlstfasta}.fasta --mlst_definitions ${mlst_definitions_srst2}.txt --mlst_delimiter '_' --min_coverage $srst_min_gene_cov --max_divergence $srst_max_gene_divergence
+    #srst2 --input_pe $forward_trimmed_reads_for_srst2 $reverse_trimmed_reads_for_srst2 --output ${sampleNumber_srst2}_srst2 --mlst_delimiter '_' --min_coverage $srst_min_gene_cov --max_divergence $srst_max_gene_divergence
+    """
+}
+
 
 
 if( params.amr_db ) {

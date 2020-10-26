@@ -5,21 +5,11 @@ import pandas as pd
 import os
 import shutil
 import glob
+import argparse
 
 from venn import venn
 from matplotlib.pyplot import show, savefig
 
-inpath = '/Volumes/External/CIDRI_Data/Mel_M_smeg/'
-
-anno_vcf = inpath + 'SnpEff/'
-
-ref = 'default'
-
-sample_file = inpath + 'sample_sheet_test.csv'
-
-comparison = ['Small_col', 'Large_col']
-
-pd.set_option('display.max_colwidth', -1)
 
 #comparison = '19119D-02-03' vs '19119D-02-04'
 
@@ -38,9 +28,9 @@ pd.set_option('display.max_colwidth', -1)
 
 def input_parser(file_path):
 	"""
-
-	:param file_path:
-	:return:
+	This is a general input parser, able to parse file depending on the file extension
+	:param file_path: The path to the input file
+	:return: The parsed form of the input file
 	"""
 
 	if file_path[-4:] == ".csv":
@@ -83,7 +73,11 @@ def input_parser(file_path):
 
 
 def venn_diagram(dict_of_data_lists):
-	'''Creates the needed format for visualization of data as a venn diagram. Takes in a dictionary of lists as input, where the keys are the circle sey labels'''
+	"""
+	Creates the needed format for visualization of data as a venn diagram. Takes in a dictionary of lists as input, where the keys are the circle set labels
+	:param dict_of_data_lists: Takes in a dictionary of lists as input
+	:return: list of sets
+	"""
 	# print dict_of_data_lists
 
 	list_of_sets = []
@@ -133,6 +127,11 @@ def venn_diagram(dict_of_data_lists):
 
 
 def unique_list(list):
+	"""
+	Returns a unique version of a list
+	:param list: Input list
+	:return: Unique list
+	"""
 	new_list = []
 	for i in list:
 		if i not in new_list:
@@ -276,7 +275,7 @@ class ReportObject:
 		out_file.write(self.footer_html)
 
 
-def make_dir_structure(working_dir, snpeff=True):
+def make_dir_structure(working_dir, snpeff=True, snpeff_dir):
 	path = working_dir + 'report'
 	print('Creating report in: ' + path)
 	try:
@@ -289,7 +288,6 @@ def make_dir_structure(working_dir, snpeff=True):
 		print("Successfully created the directory %s " % path)
 
 	if snpeff:
-		snpeff_dir = '/Volumes/External/CIDRI_Data/Mel_M_smeg/SnpEff'
 		target_dir = path + '/variants/'
 
 		for file in glob.glob(snpeff_dir + '/*.html'):
@@ -302,44 +300,47 @@ def make_dir_structure(working_dir, snpeff=True):
 	except OSError:
 		print("Creation of the assets directory %s failed" % path)
 
+	print('Relative path problem')
+	quit()
 	shutil.copy('../assets/report_style.css', './report/assets')
 
 
-# Get sample file
-reader = csv.DictReader(open(sample_file))
-sample_info = {}
-for line in reader:
-	vcf_file_name = 'sample_' + line['number'] + '_sorted_dedup_filtered.recode_snpEff.ann.vcf'
-	sample_info['sample_' + line['number']] = {
-		'file': vcf_file_name,
-		'origin': line['origin'],
-		'replicate': line['replicate'],
-		'isolate': line['isolate'],
-		'phenotype': line['phenotype'],
-		'vcf': input_parser(anno_vcf + vcf_file_name)
-	}
+def get_experiment_context(sample_file_path, comparison):
+	# Get sample file
+	reader = csv.DictReader(open(sample_file_path))
+
+	experiment_context = {}
+
+	# Create comparison
+
+	comparison_dict = {}
+	for a_comparison in comparison:
+		comparison_dict[a_comparison] = []
+
+	sample_info = {}
+	for line in reader:
+		#vcf_file_name = 'sample_' + line['number'] + '_sorted_dedup_filtered.recode_snpEff.ann.vcf'
+		sample_info['sample_' + line['number']] = {
+			'origin': line['origin'],
+			'replicate': line['replicate'],
+			'isolate': line['isolate'],
+			'phenotype': line['phenotype'],
+		}
+
+	for a_sample in sample_info.keys():
+		if sample_info[a_sample]['phenotype'] in comparison:
+			comparison_dict[sample_info[a_sample]['phenotype']].append(a_sample)
+
+	#	'vcf': input_parser(vcf_files_path + vcf_file_name)
+	#'file': vcf_file_name,
+
+	experiment_context['sample_info'] = sample_info
+	experiment_context['design'] = comparison_dict
 
 
-# Venn diagram stuff
-ven_pos_dict = {}
 
-for a_sample in sample_info.keys():
-	ven_pos_dict[a_sample] = []
-	for a_variant_pos in sample_info[a_sample]['vcf']:
-		ven_pos_dict[a_sample].append(a_variant_pos['POS'])
+	return experiment_context
 
-
-res = venn_diagram(ven_pos_dict)
-
-# Create comparison
-
-comparison_dict = {}
-for a_comparison in comparison:
-	comparison_dict[a_comparison] = []
-
-for a_sample in sample_info.keys():
-	if sample_info[a_sample]['phenotype'] in comparison:
-		comparison_dict[sample_info[a_sample]['phenotype']].append(a_sample)
 
 
 # Extract variants
@@ -410,68 +411,6 @@ def get_var_summary(sample_info_dict, report_path):
 	return a_df
 
 
-phenotype_var_pos = extract_variants_by_phenotype(res, comparison_dict, mode='intersection')
-
-# Get variant info
-
-phenotype_var_detailed = {}
-
-for a_phenotype in comparison_dict.keys():
-	phenotype_var_detailed[a_phenotype] = []
-	for a_sample in comparison_dict[a_phenotype]:
-		for a_variant in sample_info[a_sample]['vcf']:
-			if a_variant['POS'] in phenotype_var_pos[a_phenotype]:
-				phenotype_var_detailed[a_phenotype].append(a_variant)
-
-
-
-# Format for variant output
-
-this = ReportObject()
-this.add_title('M smegmatis report 1')
-
-
-for pheno in phenotype_var_detailed:
-
-	# properly extract the gene names
-
-	for a_variant in phenotype_var_detailed[pheno]:
-		# Annotation
-		a_variant['Annotation'] = a_variant['INFO'].split('|')[1]
-
-		# Putative_impact
-		a_variant['Impact'] = a_variant['INFO'].split('|')[2]
-
-		# Gene name
-		a_variant['Gene_name'] = a_variant['INFO'].split('|')[3]
-
-		# Gene ID
-		a_variant['Gene_ID'] = a_variant['INFO'].split('|')[4]
-
-	var_df = pd.DataFrame(phenotype_var_detailed[pheno])
-
-	print(pheno)
-	print(var_df)
-
-	try:
-		var_df = var_df[['POS', 'Gene_ID', 'Gene_name', 'REF', 'ALT', 'Annotation', 'Impact', 'QUAL', 'FORMAT', 'INFO', 'FILTER']]
-	except KeyError:
-		print('no variants')
-	else:
-		this.add_table(var_df, pheno + ' ' + str(comparison_dict[pheno]))
-
-make_dir_structure('')
-
-var_df = get_var_summary(sample_info, 'report/')
-this.add_table(var_df, 'SnpEFF summaries')
-this.add_figure('./variants/snp_venn_fig.png', 'Variants', 'Small_col includes: sample 19119D-02-03_S87. '
-					'Large_col includes: sample 19119D-02-04_S88. '
-					'Other includes variants found in samples: 19119D-02-01_S92, 19119D-02-02_S93, 19119D-02-05_S89, 19119D-02-06_S90'
-				)
-
-this.write_html('./report/report.html')
-
-
 def make_snp_venn(venn_grouped_info, selected_comparison, save_path):
 
 	experiment_venn_data = {'Other': set()}
@@ -508,9 +447,6 @@ def make_snp_venn(venn_grouped_info, selected_comparison, save_path):
 	savefig(save_path + 'variants/snp_venn_fig.png', format="png")
 
 
-make_snp_venn(res, comparison_dict, 'report/')
-
-
 def link_to_pathways(list_of_genes, organism):
 
 	return 'A graph obj'
@@ -521,4 +457,138 @@ def GSEA_on_gene_list(list_of_genes, organism):
 	return 'table of some sort'
 
 
+def merge_srst2__mlst(srst2_dir):
+	mlst_table = 'a dataframe'
+
+	return mlst_table
+
+
+def main(sample_file, results_dir, report_output, design, report_title):
+
+	#results_dir = '/Volumes/External/CIDRI_Data/felix_S_pneumoniae/genomics_results/'
+
+	#anno_vcf = inpath + 'SnpEff/'
+
+	#ref = 'default'
+
+	#sample_file = inpath + 'sample_sheet_test.csv'
+
+	#comparison = ['Small_col', 'Large_col']
+	comparison = design
+
+	pd.set_option('display.max_colwidth', -1)
+
+	#experiment_context['sample_info'] = sample_info
+	#experiment_context['design'] = comparison_dict
+
+	experiment_info_dict = get_experiment_context(sample_file, comparison)
+
+	print(experiment_info_dict)
+
+	report_obj = ReportObject()
+	report_obj.add_title(report_title)
+
+	# Check what outputs are available
+
+	srst2_out = False
+	snpeff = False
+	multiqc = False
+	resistome = False
+
+	quit()
+
+	vcf_present = True
+
+	if vcf_present:
+
+		# Venn stuff
+
+		ven_pos_dict = {}
+
+		for a_sample in sample_info.keys():
+			ven_pos_dict[a_sample] = []
+			for a_variant_pos in sample_info[a_sample]['vcf']:
+				ven_pos_dict[a_sample].append(a_variant_pos['POS'])
+
+		res = venn_diagram(ven_pos_dict)
+
+		make_snp_venn(res, comparison_dict, 'report/')
+
+
+		# Variant stuff
+
+		phenotype_var_pos = extract_variants_by_phenotype(res, comparison_dict, mode='intersection')
+
+		# Get variant info
+
+		phenotype_var_detailed = {}
+
+		for a_phenotype in comparison_dict.keys():
+			phenotype_var_detailed[a_phenotype] = []
+			for a_sample in comparison_dict[a_phenotype]:
+				for a_variant in sample_info[a_sample]['vcf']:
+					if a_variant['POS'] in phenotype_var_pos[a_phenotype]:
+						phenotype_var_detailed[a_phenotype].append(a_variant)
+
+		for pheno in phenotype_var_detailed:
+
+			# properly extract the gene names
+
+			for a_variant in phenotype_var_detailed[pheno]:
+				# Annotation
+				a_variant['Annotation'] = a_variant['INFO'].split('|')[1]
+
+				# Putative_impact
+				a_variant['Impact'] = a_variant['INFO'].split('|')[2]
+
+				# Gene name
+				a_variant['Gene_name'] = a_variant['INFO'].split('|')[3]
+
+				# Gene ID
+				a_variant['Gene_ID'] = a_variant['INFO'].split('|')[4]
+
+			var_df = pd.DataFrame(phenotype_var_detailed[pheno])
+
+			print(pheno)
+			print(var_df)
+
+			try:
+				var_df = var_df[
+					['POS', 'Gene_ID', 'Gene_name', 'REF', 'ALT', 'Annotation', 'Impact', 'QUAL', 'FORMAT', 'INFO',
+					 'FILTER']]
+			except KeyError:
+				print('no variants')
+			else:
+				report_obj.add_table(var_df, pheno + ' ' + str(comparison_dict[pheno]))
+
+		var_df = get_var_summary(sample_info, 'report/')
+		report_obj.add_table(var_df, 'SnpEFF summaries')
+		report_obj.add_figure('./variants/snp_venn_fig.png', 'Variants', 'Small_col includes: sample 19119D-02-03_S87. ', 'Large_col includes: sample 19119D-02-04_S88. ', 'Other includes variants found in samples: 19119D-02-01_S92, 19119D-02-02_S93, 19119D-02-05_S89, 19119D-02-06_S90')
+
+	# Done, write to file
+	make_dir_structure(report_output, snpeff=True)
+	report_obj.write_html('./report/report.html')
+
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(
+		description='''This tool downloads any reads from the SRA in the sample sheet, and makes a new one with 
+		the paths.
+		''',  epilog="""Version 0.1""")
+
+	parser.add_argument('-i', '--sample_file', type=str, help='Input sample file')
+	parser.add_argument('-r', '--results_dir', type=str, help='Directory where reads from the SRA will be moved')
+	parser.add_argument('-o', '--report_output', type=str, default=False, help='Only download first 5 spots from SRA')
+	parser.add_argument('-d', '--design', type=str, default=False, help='Only download first 5 spots from SRA')
+	parser.add_argument('-t', '--report_title', type=str, default='Report', required=False, help='Only download first 5 spots from SRA')
+
+	args = parser.parse_args()
+
+	sample_file = args.sample_file
+	results_dir = args.results_dir
+	report_output = args.report_output
+	design = args.design.split(',')
+	report_title = args.report_title
+
+	main(sample_file, results_dir, report_output, design, report_title)
 

@@ -24,9 +24,11 @@ def main(sample_dir_path, outfile_dir, outfile_name, sample_origin):
 
 	R2_options = ['2', 'R2', 'r2']
 
+	default_pheno = 'NA'
+
 	replicate = '1'
 
-	out_file.write('number,origin,replicate,isolate,R1,R2\n')
+	out_file.write('number,origin,replicate,isolate,phenotype,R1,R2\n')
 
 	sample_count = 0
 
@@ -46,6 +48,7 @@ def main(sample_dir_path, outfile_dir, outfile_name, sample_origin):
 				out_line_list.append(sample_origin)
 				out_line_list.append(replicate)
 				out_line_list.append(seq_id)
+				out_line_list.append(default_pheno)
 				out_line_list.append(sample_dir + file)
 				out_line_list.append(sample_dir + seq_id + '_' + seq_pair.replace('1', '2') + '.' + extension)
 				out_string = ','.join(out_line_list)
@@ -61,11 +64,13 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Create sample sheet from a directory of files')
 
 	# TODO: Allow files to be added to an existing sample file
+	# TODO: some phenotype sample mapping
 
 	parser.add_argument('-s', '--sample_dir', type=str, required=True, help='Full path, not relative')
 	parser.add_argument('-of', '--outfile_dir', type=str, required=True, help='info')
 	parser.add_argument('-on', '--outfile_name', type=str, help='info', default='sample_sheet.csv')
 	parser.add_argument('-jp', '--sample_origin', type=str, help='info', default='genomic')
+
 
 	args = parser.parse_args()
 
