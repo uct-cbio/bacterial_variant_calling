@@ -847,71 +847,71 @@ process '3A_srst2' {
 
 
 if( params.amr_db ) {
-	/*
-	 * Build resistance database index with Bowtie2
-	 */
-	process BuildAMRIndex {
-		tag { "${amr_db.baseName}" }
+    /*
+     * Build resistance database index with Bowtie2
+     */
+    process BuildAMRIndex {
+        tag { "${amr_db.baseName}" }
 
-		input:
-        	file amr_db
+        input:
+            file amr_db
 
-        	output:
-        	file 'amr.index*' into amr_index
+            output:
+            file 'amr.index*' into amr_index
 
-        	"""
-        	bowtie2-build $amr_db amr.index --threads ${threads}
-		    """
-	}
+            """
+            bowtie2-build $amr_db amr.index --threads ${threads}
+            """
+    }
 
-	/*
+    /*
          * Align reads to resistance database with Bowtie2
          */
-	process AMRAlignment {
-        	publishDir "${params.outdir}/Alignment", pattern: "*.bam"
+    process AMRAlignment {
+            publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
-        	tag { dataset_id }
+            tag { dataset_id }
 
-        	input:
-        	set dataset_id, file(forward), file(reverse) from amr_read_pairs
-        	file index from amr_index.first()
+            input:
+            set dataset_id, file(forward), file(reverse) from amr_read_pairs
+            file index from amr_index.first()
 
-        	output:
-        	set dataset_id, file("${dataset_id}_amr_alignment.sam") into amr_sam_files
-        	set dataset_id, file("${dataset_id}_amr_alignment.bam") into amr_bam_files
+            output:
+            set dataset_id, file("${dataset_id}_amr_alignment.sam") into amr_sam_files
+            set dataset_id, file("${dataset_id}_amr_alignment.bam") into amr_bam_files
 
-        	"""
-        	bowtie2 -p ${threads} -x amr.index -1 $forward -2 $reverse -S ${dataset_id}_amr_alignment.sam
-        	samtools view -bS ${dataset_id}_amr_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_amr_alignment.bam
-        	"""
-	}
+            """
+            bowtie2 -p ${threads} -x amr.index -1 $forward -2 $reverse -S ${dataset_id}_amr_alignment.sam
+            samtools view -bS ${dataset_id}_amr_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_amr_alignment.bam
+            """
+    }
 
-	process AMRResistome {
-        	publishDir "${params.outdir}/Resistome"
+    process AMRResistome {
+            publishDir "${params.outdir}/Resistome"
 
-        	tag { dataset_id }
+            tag { dataset_id }
 
-        	input:
-        	file amr_db
-        	set dataset_id, file(amr_sam) from amr_sam_files
+            input:
+            file amr_db
+            set dataset_id, file(amr_sam) from amr_sam_files
 
-        	output:
-        	set dataset_id, file("${dataset_id}_amr_gene_resistome.tsv") into amr_gene_level
+            output:
+            set dataset_id, file("${dataset_id}_amr_gene_resistome.tsv") into amr_gene_level
 
-        	"""
-		    csa -ref_fp ${vf_db} -sam_fp ${vf_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_amr_gene_resistome.tsv"
-        	"""
-	}
+            """
+            csa -ref_fp ${vf_db} -sam_fp ${vf_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_amr_gene_resistome.tsv"
+            """
+    }
 }
 
 if( params.vf_db ) {
-	/*
+    /*
     * Build resistance database index with Bowtie2
     */
-	process BuildVFIndex {
-		tag { "Building index" }
+    process BuildVFIndex {
+        tag { "Building index" }
 
-		input:
+        input:
 
         output:
         file 'vf.index*' into vf_index
@@ -924,105 +924,105 @@ if( params.vf_db ) {
         sed -i 's/(/_/g' VFDB_setB_nt.fa
         sed -i 's/)/_/g' VFDB_setB_nt.fa
         bowtie2-build VFDB_setB_nt.fa vf.index
-		"""
-	}
-	/*
+        """
+    }
+    /*
          * Align reads to virulence factor database with Bowtie2
          */
-	process VFAlignment {
-        	publishDir "${params.outdir}/Alignment", pattern: "*.bam"
+    process VFAlignment {
+            publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
-        	tag { dataset_id }
+            tag { dataset_id }
 
-        	input:
-        	set dataset_id, file(forward), file(reverse) from vf_read_pairs
-        	file index from vf_index.first()
-        	file vf_fasta from vf_fa
+            input:
+            set dataset_id, file(forward), file(reverse) from vf_read_pairs
+            file index from vf_index.first()
+            file vf_fasta from vf_fa
 
-        	output:
-        	set dataset_id, file("${dataset_id}_vf_alignment.sam") into vf_sam_files
-        	set dataset_id, file("${dataset_id}_vf_alignment.bam") into vf_bam_files
+            output:
+            set dataset_id, file("${dataset_id}_vf_alignment.sam") into vf_sam_files
+            set dataset_id, file("${dataset_id}_vf_alignment.bam") into vf_bam_files
 
-        	"""
-        	bowtie2 -p ${threads} -x vf.index -1 $forward -2 $reverse -S ${dataset_id}_vf_alignment.sam
-        	samtools view -bS ${dataset_id}_vf_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_vf_alignment.bam
-        	"""
-	}
+            """
+            bowtie2 -p ${threads} -x vf.index -1 $forward -2 $reverse -S ${dataset_id}_vf_alignment.sam
+            samtools view -bS ${dataset_id}_vf_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_vf_alignment.bam
+            """
+    }
 
-	process VFResistome {
-        	publishDir "${params.outdir}/Resistome"
+    process VFResistome {
+            publishDir "${params.outdir}/Resistome"
 
             label 'high_memory'
-        	tag { dataset_id }
+            tag { dataset_id }
 
-        	input:
-        	file vf_db from vf_fa
-        	set dataset_id, file(vf_bam) from vf_bam_files
+            input:
+            file vf_db from vf_fa
+            set dataset_id, file(vf_bam) from vf_bam_files
 
-        	output:
-        	set dataset_id, file("${dataset_id}_raw_wgs_metrics.txt") into vf_gene_level
+            output:
+            set dataset_id, file("${dataset_id}_raw_wgs_metrics.txt") into vf_gene_level
 
-        	"""
-        	picard CollectWgsMetrics I=$vf_bam O=${dataset_id}_raw_wgs_metrics.txt R=${vf_db} INCLUDE_BQ_HISTOGRAM=true
-        	"""
-	}
+            """
+            picard CollectWgsMetrics I=$vf_bam O=${dataset_id}_raw_wgs_metrics.txt R=${vf_db} INCLUDE_BQ_HISTOGRAM=true
+            """
+    }
 }
 
 if( params.plasmid_db ) {
-	/*
+    /*
          * Build plasmid index with Bowtie2
          */
-	process BuildPlasmidIndex {
-		tag { "${plasmid_db.baseName}" }
+    process BuildPlasmidIndex {
+        tag { "${plasmid_db.baseName}" }
 
-		input:
-        	file plasmid_db
+        input:
+            file plasmid_db
 
-        	output:
-        	file 'plasmid.index*' into plasmid_index
+            output:
+            file 'plasmid.index*' into plasmid_index
 
-        	"""
-        	bowtie2-build $plasmid_db plasmid.index --threads ${threads}
-		"""
-	}
-	/*
+            """
+            bowtie2-build $plasmid_db plasmid.index --threads ${threads}
+        """
+    }
+    /*
          * Align reads to plasmid database with Bowtie2
          */
-	process PlasmidAlignment {
-        	publishDir "${params.outdir}/Alignment", pattern: "*.bam"
+    process PlasmidAlignment {
+            publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
-        	tag { dataset_id }
+            tag { dataset_id }
 
-        	input:
-        	set dataset_id, file(forward), file(reverse) from plasmid_read_pairs
-        	file index from plasmid_index.first()
+            input:
+            set dataset_id, file(forward), file(reverse) from plasmid_read_pairs
+            file index from plasmid_index.first()
 
-        	output:
-        	set dataset_id, file("${dataset_id}_plasmid_alignment.sam") into plasmid_sam_files
-        	set dataset_id, file("${dataset_id}_plasmid_alignment.bam") into plasmid_bam_files
+            output:
+            set dataset_id, file("${dataset_id}_plasmid_alignment.sam") into plasmid_sam_files
+            set dataset_id, file("${dataset_id}_plasmid_alignment.bam") into plasmid_bam_files
 
-        	"""
-        	bowtie2 -p ${threads} -x plasmid.index -1 $forward -2 $reverse -S ${dataset_id}_plasmid_alignment.sam
-        	samtools view -bS ${dataset_id}_plasmid_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_plasmid_alignment.bam
-        	"""
-	}
+            """
+            bowtie2 -p ${threads} -x plasmid.index -1 $forward -2 $reverse -S ${dataset_id}_plasmid_alignment.sam
+            samtools view -bS ${dataset_id}_plasmid_alignment.sam | samtools sort -@ ${threads} -o ${dataset_id}_plasmid_alignment.bam
+            """
+    }
 
-	process PlasmidResistome {
-        	publishDir "${params.outdir}/Resistome"
+    process PlasmidResistome {
+            publishDir "${params.outdir}/Resistome"
 
-        	tag { dataset_id }
+            tag { dataset_id }
 
-        	input:
-        	file plasmid_db
-        	set dataset_id, file(plasmid_sam) from plasmid_sam_files
+            input:
+            file plasmid_db
+            set dataset_id, file(plasmid_sam) from plasmid_sam_files
 
-        	output:
-        	set dataset_id, file("${dataset_id}_plasmid_gene_resistome.tsv") into plasmid_gene_level
+            output:
+            set dataset_id, file("${dataset_id}_plasmid_gene_resistome.tsv") into plasmid_gene_level
 
-        	"""
-        	csa -ref_fp ${plasmid_db} -sam_fp ${plasmid_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_plasmid_gene_resistome.tsv"
-        	"""
-	}
+            """
+            csa -ref_fp ${plasmid_db} -sam_fp ${plasmid_sam} -min 5 -max 100 -skip 5 -t 0 -samples 1 -out_fp "${dataset_id}_plasmid_gene_resistome.tsv"
+            """
+    }
 }
 
 
@@ -1200,20 +1200,20 @@ process '3D_split_vcf_indel_snps' {
  */
 process BuildConesnsusSequence {
 
-	publishDir "${params.outdir}/Consensus"
+    publishDir "${params.outdir}/Consensus"
 
-	input:
-	file snp_vcf_file from snp_vcfs
-	file genome from genome_file
+    input:
+    file snp_vcf_file from snp_vcfs
+    file genome from genome_file
 
-	output:
-	file("${snp_vcf_file.baseName}_consensus.fa") into consensus_files
+    output:
+    file("${snp_vcf_file.baseName}_consensus.fa") into consensus_files
 
-	"""
-	bgzip -c $snp_vcf_file > ${snp_vcf_file.baseName}.vcf.gz
-	tabix ${snp_vcf_file.baseName}.vcf.gz
-	cat $genome | bcftools consensus ${snp_vcf_file.baseName}.vcf.gz > ${snp_vcf_file.baseName}_consensus.fa
-	"""
+    """
+    bgzip -c $snp_vcf_file > ${snp_vcf_file.baseName}.vcf.gz
+    tabix ${snp_vcf_file.baseName}.vcf.gz
+    cat $genome | bcftools consensus ${snp_vcf_file.baseName}.vcf.gz > ${snp_vcf_file.baseName}_consensus.fa
+    """
 }
 
 
@@ -1263,7 +1263,7 @@ process '4D_run_RAxML' {
 
   script:
   """
-  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 123 -N autoMRE -p 456
+  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 10 -N autoMRE -p 10
   """
 }
 
