@@ -409,6 +409,7 @@ process '1D_prepare_samples' {
       file samples from sample_sheet
   output:
       file "sample_sheet_new.csv" into newSampleSheet
+      file "sample_sheet_new.csv" into newSampleSheetFastQC
       file "*.fastq" optional true into SRA_new_reads
   script:
   """
@@ -420,8 +421,12 @@ process '1D_prepare_samples' {
 newSampleSheet
   .splitCsv(header:true)
   .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
-  .set { newSampleChannel, newSampleChannelFastQC }
+  .set { newSampleChannel }
 
+newSampleSheetFastQC
+  .splitCsv(header:true)
+  .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
+  .set { newSampleChannelFastQC }
 
 
 /*
