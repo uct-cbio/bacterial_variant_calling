@@ -199,7 +199,7 @@ threads         = 4
 aligner         = params.aligner
 variant_caller  = params.variant_caller
 vcf_qual_cutoff = params.vcf_qual_cutoff
-SRAdir          = $params.SRAdir
+SRAdir          = params.SRAdir
 file_ext = 'int'
 
 srst_min_gene_cov           = params.srst_min_gene_cov
