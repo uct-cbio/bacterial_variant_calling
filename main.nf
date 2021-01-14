@@ -421,13 +421,13 @@ process '1D_prepare_samples' {
 
 
 newSampleSheet
-  .watchPath( $SRAdir + '/sample_sheet_new.csv' )
+  .watchPath( '$SRAdir/sample_sheet_new.csv' )
   .splitCsv(header:true)
   .map { row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannel }
 
 newSampleSheetFastQC
-  .watchPath( $SRAdir + '/sample_sheet_new.csv' )
+  .watchPath( '$SRAdir/sample_sheet_new.csv' )
   .splitCsv(header:true)
   .map { row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannelFastQC }
