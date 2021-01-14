@@ -501,6 +501,8 @@ process '1F_trim_galore' {
         """
         trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $R1 $R2
 
+        rename 's/fastq.gz/fq.gz/' *.fastq.gz
+
         rename 's/val_1_001/1/' *.fq.gz
         rename 's/val_2_001/2/' *.fq.gz
 
