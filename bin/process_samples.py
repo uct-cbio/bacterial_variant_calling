@@ -15,12 +15,12 @@ def main(inFile, fastq_dir, fast_test_mode):
 	new_sample_sheet = inFile.split('.')[0] + '_new.csv'
 	output_file = open(new_sample_sheet, 'w')
 
+
 	for line in input_file:
 		line = line.rstrip()
 		line = line.split(',')
-		if line[5].split('.')[-1] != 'fq' and line[5].split('.')[-1] != 'fastq' and line[5].split('.')[-1] != 'R1' and line[5].split('.')[-1] != 'gz':
+		if line[4].split('.')[-1] != 'fq' and line[4].split('.')[-1] != 'fastq' and line[4].split('.')[-1] != 'R1' and line[4].split('.')[-1] != 'gz':
 			print('SRA detected')
-			print(line[5])
 
 			if fast_test_mode:
 				print(line[5])
