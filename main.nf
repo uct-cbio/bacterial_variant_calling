@@ -421,7 +421,6 @@ newSampleSheet
   .splitCsv(header:true)
   .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannel }
-  .set { newSampleChannelFastQC }
 
 
 
@@ -435,7 +434,7 @@ newSampleSheet
         saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
 
     input:
-    set number, file(R1), file(R2) from newSampleChannelFastQC
+    set number, file(R1), file(R2) from newSampleChannel
 
     output:
     file "*_fastqc.{zip,html}" into fastqc_results
