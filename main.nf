@@ -199,6 +199,7 @@ threads         = 4
 aligner         = params.aligner
 variant_caller  = params.variant_caller
 vcf_qual_cutoff = params.vcf_qual_cutoff
+SRAdir          = $params.SRAdir
 file_ext = 'int'
 
 srst_min_gene_cov           = params.srst_min_gene_cov
@@ -420,13 +421,13 @@ process '1D_prepare_samples' {
 
 
 newSampleSheet
-  .watchPath( $params.SRAdir + '/sample_sheet_new.csv' )
+  .watchPath( $SRAdir + '/sample_sheet_new.csv' )
   .splitCsv(header:true)
   .map { row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannel }
 
 newSampleSheetFastQC
-  .watchPath( $params.SRAdir + '/sample_sheet_new.csv' )
+  .watchPath( $SRAdir + '/sample_sheet_new.csv' )
   .splitCsv(header:true)
   .map { row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannelFastQC }
