@@ -418,15 +418,21 @@ process '1D_prepare_samples' {
   """
 }
 
-newSampleSheet
-  .splitCsv(header:true)
-  .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
-  .set { newSampleChannel }
 
-newSampleSheetFastQC
-  .splitCsv(header:true)
-  .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
-  .set { newSampleChannelFastQC }
+process testting {
+
+    newSampleSheet
+      .splitCsv(header:true)
+      .map { row-> tuple(row.number, file(row.R1), file(row.R2)) }
+      .set { newSampleChannel }
+
+    newSampleSheetFastQC
+      .splitCsv(header:true)
+      .map { row-> tuple(row.number, file(row.R1), file(row.R2)) }
+      .set { newSampleChannelFastQC }
+
+}
+
 
 
 /*
