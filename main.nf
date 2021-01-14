@@ -285,9 +285,6 @@ if(!params.bed12){
 }
 
 
-// Check the hostnames against configured profiles
-
-checkHostname()
 
 def create_workflow_summary(summary) {
     def yaml_file = workDir.resolve('workflow_summary_mqc.yaml')
@@ -486,7 +483,7 @@ process '1F_trim_galore' {
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
     val "$number" into sampleNumber_srst2
     val "$number" into sampleNumber
-    set number, file("*_1.fq.gz"), file("*_2.fq.gz") into vf_read_pairs
+    set number, file("*_R1_001.fq.gz"), file("*_R2_001.fq.gz") into vf_read_pairs
 
     script:
     c_r1 = clip_r1 > 0 ? "--clip_r1 ${clip_r1}" : ''
@@ -1331,25 +1328,4 @@ def nfcoreHeader(){
     ${c_purple}  nf-core/rnaseq v${workflow.manifest.version}${c_reset}
     ${c_dim}----------------------------------------------------${c_reset}
     """.stripIndent()
-}
-
-def checkHostname(){
-    def c_reset = params.monochrome_logs ? '' : "\033[0m"
-    def c_white = params.monochrome_logs ? '' : "\033[0;37m"
-    def c_red = params.monochrome_logs ? '' : "\033[1;91m"
-    def c_yellow_bold = params.monochrome_logs ? '' : "\033[1;93m"
-    if(params.hostnames){
-        def hostname = "hostname".execute().text.trim()
-        params.hostnames.each { prof, hnames ->
-            hnames.each { hname ->
-                if(hostname.contains(hname) && !workflow.profile.contains(prof)){
-                    log.error "====================================================\n" +
-                            "  ${c_red}WARNING!${c_reset} You are running with `-profile $workflow.profile`\n" +
-                            "  but your machine hostname is ${c_white}'$hostname'${c_reset}\n" +
-                            "  ${c_yellow_bold}It's highly recommended that you use `-profile $prof${c_reset}`\n" +
-                            "============================================================"
-                }
-            }
-        }
-    }
 }
