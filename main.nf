@@ -419,9 +419,10 @@ process '1D_prepare_samples' {
   """
 }
 
+println '$SRAdir/sample_sheet_new.csv'
 
 newSampleSheet
-  .watchPath( '$SRAdir/sample_sheet_new.csv' )
+  .watchPath( '$SRAdir + /sample_sheet_new.csv' )
   .splitCsv(header:true)
   .map { row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannel }
