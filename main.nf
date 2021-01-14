@@ -675,7 +675,7 @@ process '2D_genebody_coverage' {
  * Process 2E: preseq analysis EDIT NEEDED
  */
 
-process 2E_preseq {
+process '2E_preseq' {
     tag "${bam_preseq.baseName - '.sorted'}"
     publishDir "${params.outdir}/preseq", mode: 'copy'
 
@@ -723,7 +723,7 @@ process '2F_mark_duplicates' {
  * Process 2G: dupradar EDIT NEEDED
  */
 /*
-process 2G_dupradar {
+process '2G_dupradar' {
     label 'low_memory'
     tag "${bam_md.baseName - '.sorted.markDups'}"
     publishDir "${params.outdir}/dupradar", mode: 'copy',
@@ -778,7 +778,7 @@ process 2G_dupradar {
  * https://github.com/kviljoen/uct-srst2/blob/master/main.nf
  */
 
-process 3A_srst2 {
+process '3A_srst2' {
     tag { "srst2.${sampleNumber_srst2}" }
     publishDir "${params.outdir}/srst2_mlst", mode: "copy"
     label 'high_memory'
@@ -820,7 +820,7 @@ if( params.amr_db ) {
     /*
      * Build resistance database index with Bowtie2
      */
-    process BuildAMRIndex {
+    process '3B_BuildAMRIndex' {
         tag { "${amr_db.baseName}" }
 
         input:
@@ -837,7 +837,7 @@ if( params.amr_db ) {
     /*
          * Align reads to resistance database with Bowtie2
          */
-    process AMRAlignment {
+    process '3B_AMRAlignment' {
             publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
             tag { dataset_id }
@@ -856,7 +856,7 @@ if( params.amr_db ) {
             """
     }
 
-    process AMRResistome {
+    process '3B_AMRResistome' {
             publishDir "${params.outdir}/Resistome"
 
             tag { dataset_id }
@@ -882,7 +882,7 @@ if( params.vf_db ) {
     /*
     * Build resistance database index with Bowtie2
     */
-    process 3C_BuildVFIndex {
+    process '3C_BuildVFIndex' {
         tag { "Building index" }
 
         input:
@@ -903,7 +903,7 @@ if( params.vf_db ) {
     /*
          * Align reads to virulence factor database with Bowtie2
          */
-    process 3C_VFAlignment {
+    process '3C_VFAlignment' {
             publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
             tag { dataset_id }
@@ -923,7 +923,7 @@ if( params.vf_db ) {
             """
     }
 
-    process 3C_VFResistome {
+    process '3C_VFResistome' {
             publishDir "${params.outdir}/Resistome"
 
             label 'high_memory'
@@ -950,7 +950,7 @@ if( params.plasmid_db ) {
     /*
          * Build plasmid index with Bowtie2
          */
-    process 3D_BuildPlasmidIndex {
+    process '3D_BuildPlasmidIndex' {
         tag { "${plasmid_db.baseName}" }
 
         input:
@@ -966,7 +966,7 @@ if( params.plasmid_db ) {
     /*
          * Align reads to plasmid database with Bowtie2
          */
-    process 3D_PlasmidAlignment {
+    process '3D_PlasmidAlignment' {
             publishDir "${params.outdir}/Alignment", pattern: "*.bam"
 
             tag { dataset_id }
@@ -985,7 +985,7 @@ if( params.plasmid_db ) {
             """
     }
 
-    process 3D_PlasmidResistome {
+    process '3D_PlasmidResistome' {
             publishDir "${params.outdir}/Resistome"
 
             tag { dataset_id }
@@ -1014,7 +1014,7 @@ if( params.plasmid_db ) {
  */
 
 
-process 4A_call_variants {
+process '4A_call_variants' {
 
   publishDir "${params.outdir}/variants", mode: "link", overwrite: true
 
@@ -1046,7 +1046,7 @@ process 4A_call_variants {
  * Process 4B: Calculate coverage values for variant filtering
  */
 
-process 4B_calc_coverage {
+process '4B_calc_coverage' {
   input:
      set file(vcf), file(bam) from vcf_bam_files
   output:
@@ -1064,7 +1064,7 @@ process 4B_calc_coverage {
  * Process 4C: Variant filtering
  */
 
-process 4C_filter_variants {
+process '4C_filter_variants' {
   input:
     set file(vcf), file(bam), coverage from vcf_bam_cov_files
   output:
@@ -1083,7 +1083,7 @@ process 4C_filter_variants {
 
 if (params.snpeffDb == 'build') {
 
-  process 4E_Snpeff_setup_new_DB {
+  process '4E_Snpeff_setup_new_DB' {
 
    publishDir "${params.outdir}snpEffDB", mode: "link", overwrite: false
 
@@ -1111,7 +1111,7 @@ if (params.snpeffDb == 'build') {
    """
   }
 
-  process 4E_Snpeff_create_DB {
+  process '4E_Snpeff_create_DB' {
 
     input:
       file config from snpeff_config_file_dbBuild
@@ -1127,7 +1127,7 @@ if (params.snpeffDb == 'build') {
 
 } else {
 
-  process 4E_Snpeff_download_DB {
+  process '4E_Snpeff_download_DB' {
 
     output:
       file "snpEff.config" into run_config
@@ -1143,7 +1143,7 @@ if (params.snpeffDb == 'build') {
 }
 
 
-process 4E_Snpeff {
+process '4E_Snpeff' {
   publishDir "${params.outdir}/SnpEff", mode: "link", overwrite: true
 
   input:
@@ -1191,7 +1191,7 @@ process '4F_split_vcf_indel_snps' {
 /*
  * Process 4G: Integrate SNPs into reference genome with BCFtools
  */
-process 4G_BuildConsensusSequence {
+process '4G_BuildConsensusSequence' {
 
     publishDir "${params.outdir}/Consensus"
 
@@ -1223,7 +1223,7 @@ process 4G_BuildConsensusSequence {
  * Process 5A: Align consensus sequences
  */
 
-process 5A_mafft_alignment {
+process '5A_mafft_alignment' {
 
   label 'high_memory'
 
@@ -1244,7 +1244,7 @@ process 5A_mafft_alignment {
  * Process 5B: Run RAXML
  */
 
-process 5B_run_RAxML {
+process '5B_run_RAxML' {
 
   publishDir "${params.outdir}/RAxML", mode: "link", overwrite: false
 
@@ -1273,7 +1273,7 @@ process 5B_run_RAxML {
  *
  */
 
-process 6A_multiqc {
+process '6A_multiqc' {
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     when:
