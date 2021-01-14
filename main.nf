@@ -501,13 +501,15 @@ process '1F_trim_galore' {
         """
         trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $R1 $R2
 
+        #  MiSeq file naming convention (samplename_S1_L001_[R1]_001)
+
         rename 's/fastq.gz/fq.gz/' *.fastq.gz
 
-        rename 's/val_1_001/1/' *.fq.gz
-        rename 's/val_2_001/2/' *.fq.gz
+        #rename 's/val_1_001/1/' *.fq.gz
+        #rename 's/val_2_001/2/' *.fq.gz
 
-        rename 's/_val_1//' *.fq.gz
-        rename 's/_val_2//' *.fq.gz
+        #rename 's/_val_1//' *.fq.gz
+        #rename 's/_val_2//' *.fq.gz
         """
     }
 }
