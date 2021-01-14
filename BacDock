@@ -50,7 +50,7 @@ RUN curl -fksSL https://github.com/broadinstitute/picard/releases/download/2.9.0
 # install VCFtools
 RUN curl -fksSL https://github.com/vcftools/vcftools/releases/download/v0.1.14/vcftools-0.1.14.tar.gz | tar xz && \
     cd vcftools-0.1.14 && \
-    ./configure; make; make install
+    ./configure; make; make insta
 
 # install STAR
 RUN curl -fksSL https://github.com/alexdobin/STAR/archive/2.5.2b.tar.gz | tar xz && \

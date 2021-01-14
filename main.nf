@@ -224,6 +224,7 @@ summary['Data Type']        = params.singleEnd ? 'Single-End' : 'Paired-End'
  *
  * Convert GFF3 to GTF
  */
+
 if(params.gff){
   process convertGFFtoGTF {
       tag "$gff"
