@@ -421,6 +421,7 @@ newSampleSheet
   .splitCsv(header:true)
   .map{ row-> tuple(row.number, file(row.R1), file(row.R2)) }
   .set { newSampleChannel }
+  .set { newSampleChannelFastQC }
 
 
 
