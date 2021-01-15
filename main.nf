@@ -610,8 +610,8 @@ process '2B_rseqc' {
     read_distribution.py -i $bam_rseqc -r $bed12 > ${bam_rseqc.baseName}.read_distribution.txt
     read_duplication.py -i $bam_rseqc -o ${bam_rseqc.baseName}.read_duplication
 
-    geneBody_coverage.py -i $bam -o ${bam.baseName}.rseqc -r $bed12
-    mv log.txt ${bam.baseName}.rseqc.log.txt
+    geneBody_coverage.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
+    mv log.txt ${bam_rseqc.baseName}.rseqc.log.txt
 
     # Not applicable for bacteria
     #junction_annotation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
