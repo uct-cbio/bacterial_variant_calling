@@ -597,42 +597,18 @@ process '2B_rseqc' {
     script:
     """
     infer_experiment.py -i $bam_rseqc -r $bed12 > ${bam_rseqc.baseName}.infer_experiment.txt
-    junction_annotation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
     bam_stat.py -i $bam_rseqc 2> ${bam_rseqc.baseName}.bam_stat.txt
-    junction_saturation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12 2> ${bam_rseqc.baseName}.junction_annotation_log.txt
     inner_distance.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
     read_distribution.py -i $bam_rseqc -r $bed12 > ${bam_rseqc.baseName}.read_distribution.txt
     read_duplication.py -i $bam_rseqc -o ${bam_rseqc.baseName}.read_duplication
+
+    # Not applicable for bacteria
+    #junction_annotation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
+    #junction_saturation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12 2> ${bam_rseqc.baseName}.junction_annotation_log.txt
+
     """
 }
 
-
-/*
- * Process 2C: Subsample the BAM files if necessary
- */
-
-bam_forSubsamp
-    .filter { it.size() > params.subsampFilesizeThreshold }
-    .map { [it, params.subsampFilesizeThreshold / it.size() ] }
-    .set{ bam_forSubsampFiltered }
-bam_skipSubsamp
-    .filter { it.size() <= params.subsampFilesizeThreshold }
-    .set{ bam_skipSubsampFiltered }
-
-process '2C_bam_subsample' {
-    tag "${bam.baseName - '.sorted'}"
-
-    input:
-    set file(bam), val(fraction) from bam_forSubsampFiltered
-
-    output:
-    file "*_subsamp.bam" into bam_subsampled
-
-    script:
-    """
-    samtools view -s $fraction -b $bam | samtools sort -o ${bam.baseName}_subsamp.bam
-    """
-}
 
 
 /*
@@ -664,10 +640,7 @@ process '2D_genebody_coverage' {
     script:
     """
     samtools index $bam
-    geneBody_coverage.py \\
-        -i $bam \\
-        -o ${bam.baseName}.rseqc \\
-        -r $bed12
+    geneBody_coverage.py -i $bam -o ${bam.baseName}.rseqc -r $bed12
     mv log.txt ${bam.baseName}.rseqc.log.txt
     """
 }
