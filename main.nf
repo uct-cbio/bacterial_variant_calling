@@ -202,9 +202,9 @@ vcf_qual_cutoff = params.vcf_qual_cutoff
 SRAdir          = params.SRAdir
 file_ext        = 'int'
 
-params.skip_qc      = False
-params.skip_rseqc   = False
-params.skip_preseq  = False
+params.skip_qc      = false
+params.skip_rseqc   = false
+params.skip_preseq  = false
 
 srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
