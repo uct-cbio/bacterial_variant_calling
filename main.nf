@@ -580,6 +580,10 @@ process '2B_rseqc' {
             else if (filename.indexOf("splice_junction.pdf") > 0)               "junction_annotation/junctions/$filename"
             else if (filename.indexOf("junctionSaturation_plot.pdf") > 0)       "junction_saturation/$filename"
             else if (filename.indexOf("junctionSaturation_plot.r") > 0)         "junction_saturation/rscripts/$filename"
+            else if (filename.indexOf("geneBodyCoverage.curves.pdf") > 0)       "geneBodyCoverage/$filename"
+            else if (filename.indexOf("geneBodyCoverage.r") > 0)                "geneBodyCoverage/rscripts/$filename"
+            else if (filename.indexOf("geneBodyCoverage.txt") > 0)              "geneBodyCoverage/data/$filename"
+            else if (filename.indexOf("log.txt") > -1) false
             else filename
         }
 
@@ -602,6 +606,9 @@ process '2B_rseqc' {
     read_distribution.py -i $bam_rseqc -r $bed12 > ${bam_rseqc.baseName}.read_distribution.txt
     read_duplication.py -i $bam_rseqc -o ${bam_rseqc.baseName}.read_duplication
 
+    geneBody_coverage.py -i $bam -o ${bam.baseName}.rseqc -r $bed12
+    mv log.txt ${bam.baseName}.rseqc.log.txt
+
     # Not applicable for bacteria
     #junction_annotation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
     #junction_saturation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12 2> ${bam_rseqc.baseName}.junction_annotation_log.txt
@@ -609,41 +616,6 @@ process '2B_rseqc' {
     """
 }
 
-
-
-/*
- * Process 2D: Rseqc genebody_coverage -- EDITS NEEDED
- */
-
-process '2D_genebody_coverage' {
-    label 'mid_memory'
-    tag "${bam.baseName - '.sorted'}"
-       publishDir "${params.outdir}/rseqc" , mode: 'copy',
-        saveAs: {filename ->
-            if (filename.indexOf("geneBodyCoverage.curves.pdf") > 0)       "geneBodyCoverage/$filename"
-            else if (filename.indexOf("geneBodyCoverage.r") > 0)           "geneBodyCoverage/rscripts/$filename"
-            else if (filename.indexOf("geneBodyCoverage.txt") > 0)         "geneBodyCoverage/data/$filename"
-            else if (filename.indexOf("log.txt") > -1) false
-            else filename
-        }
-
-    when:
-    !params.skip_qc && !params.skip_genebody_coverage
-
-    input:
-    file bam from bam_subsampled.concat(bam_skipSubsampFiltered)
-    file bed12 from bed_genebody_coverage.collect()
-
-    output:
-    file "*.{txt,pdf,r}" into genebody_coverage_results
-
-    script:
-    """
-    samtools index $bam
-    geneBody_coverage.py -i $bam -o ${bam.baseName}.rseqc -r $bed12
-    mv log.txt ${bam.baseName}.rseqc.log.txt
-    """
-}
 
 
 /*
