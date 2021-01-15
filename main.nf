@@ -204,7 +204,7 @@ file_ext        = 'int'
 
 params.skip_qc      = false
 params.skip_rseqc   = false
-params.skip_preseq  = false
+params.skip_preseq  = true
 
 srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
@@ -623,7 +623,7 @@ process '2B_rseqc' {
 
 
 /*
- * Process 2E: preseq analysis EDIT NEEDED
+ * Process 2E: preseq analysis NOT INSTALLED IN IMAGE
  */
 
 process '2E_preseq' {
