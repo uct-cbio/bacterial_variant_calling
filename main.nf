@@ -551,7 +551,7 @@ process '2A_read_mapping' {
 
 
 /*
- * Process 2B: RSeQC analysis -- EDITS NEEDED
+ * Process 2B: RSeQC analysis -- Appears working
  */
 
 process '2B_rseqc' {
@@ -637,8 +637,7 @@ process '2E_preseq' {
 
     script:
     """
-    #preseq lc_extrap -v -B $bam_preseq -o ${bam_preseq.baseName}.ccurve.txt
-    touch ${bam_preseq.baseName}.ccurve.txt
+    preseq lc_extrap -v -B $bam_preseq -o ${bam_preseq.baseName}.ccurve.txt
     """
 }
 
