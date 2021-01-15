@@ -200,7 +200,11 @@ aligner         = params.aligner
 variant_caller  = params.variant_caller
 vcf_qual_cutoff = params.vcf_qual_cutoff
 SRAdir          = params.SRAdir
-file_ext = 'int'
+file_ext        = 'int'
+
+params.skip_qc      = False
+params.skip_rseqc   = False
+params.skip_preseq  = False
 
 srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
