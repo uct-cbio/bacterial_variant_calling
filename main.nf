@@ -631,7 +631,7 @@ process '2B_rseqc' {
 
 
 /*
- * Process 2F: Mark duplicate reads - EDIT for QC
+ * Process 2F: Mark duplicate reads
  */
 
 process '2F_mark_duplicates' {
@@ -653,9 +653,9 @@ process '2F_mark_duplicates' {
 
 
 /*
- * Process 2G: dupradar EDIT NEEDED
+ * Process 2G: dupradar
  */
-/*
+
 process '2G_dupradar' {
     label 'low_memory'
     tag "${bam_md.baseName - '.sorted.markDups'}"
@@ -692,7 +692,7 @@ process '2G_dupradar' {
     dupRadar.r $bam_md $gtf $dupradar_direction $paired ${task.cpus}
     """
 }
-*/
+
 
 
 /*
