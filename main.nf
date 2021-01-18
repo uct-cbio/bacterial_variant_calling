@@ -626,24 +626,7 @@ process '2B_rseqc' {
  * Process 2E: preseq analysis NOT INSTALLED IN IMAGE
  */
 
-process '2E_preseq' {
-    tag "${bam_preseq.baseName - '.sorted'}"
-    publishDir "${params.outdir}/preseq", mode: 'copy'
 
-    when:
-    !params.skip_qc && !params.skip_preseq
-
-    input:
-    file bam_preseq
-
-    output:
-    file "${bam_preseq.baseName}.ccurve.txt" into preseq_results
-
-    script:
-    """
-    preseq lc_extrap -v -B $bam_preseq -o ${bam_preseq.baseName}.ccurve.txt
-    """
-}
 
 
 
