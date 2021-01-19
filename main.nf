@@ -940,7 +940,7 @@ process '4A_call_variants' {
   script:
   if( variant_caller == 'freebayes' )
     """
-    freebayes -f $genome -p 1 dedup_bamfile > need_rename.vcf
+    freebayes -f $genome -p 1 $dedup_bamfile > need_rename.vcf
     echo "unknown ${dedup_bamfile.baseName}\n" > sample_names.txt
     bcftools reheader need_rename.vcf --samples sample_names.txt -o ${dedup_bamfile.baseName}.vcf
 
