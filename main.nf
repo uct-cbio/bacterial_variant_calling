@@ -639,9 +639,8 @@ process '2F_mark_duplicates' {
   input:
     file sample_bam from bamfiles
   output:
-    file "${sample_bam.baseName}.dedup.bam" into dedup_bamfiles
-    file "${sample_bam.baseName}.dedup.bam" into dupradar_bamfiles
-    file "${sample_bam.baseName}.dedup.bam.bai"
+    set file("${sample_bam.baseName}.dedup.bam"), file("${sample_bam.baseName}.dedup.bam.bai") into dedup_bamfiles
+    set file("${sample_bam.baseName}.dedup.bam"), file("${sample_bam.baseName}.dedup.bam.bai") into dupradar_bamfiles
     file "${sample_bam.baseName}.txt" into picard_results
   script:
     """
@@ -663,7 +662,7 @@ process '2G_dupradar' {
 
 
     input:
-    file dupradar_bamfiles
+    set dupradar_bamfiles, dupradar_bamindex from dupradar_bamfiles
     file gtf from gtf_dupradar
 
     output:
@@ -934,21 +933,21 @@ process '4A_call_variants' {
 
   input:
     file genome from genome_file
-    file sample_bam from dedup_bamfiles
+    set dedup_bamfiles, dedup_bamindex from dupradar_bamfiles
   output:
-    set file("${sample_bam.baseName}.vcf"), file("$sample_bam") into vcf_bam_files
+    set file("${dedup_bamfiles.baseName}.vcf"), file("$dedup_bamfiles") into vcf_bam_files
 
   script:
   if( variant_caller == 'freebayes' )
     """
-    freebayes -f $genome -p 1 $sample_bam > need_rename.vcf
-    echo "unknown ${sample_bam.baseName}\n" > sample_names.txt
-    bcftools reheader need_rename.vcf --samples sample_names.txt -o ${sample_bam.baseName}.vcf
+    freebayes -f $genome -p 1 $dedup_bamfiles > need_rename.vcf
+    echo "unknown ${dedup_bamfiles.baseName}\n" > sample_names.txt
+    bcftools reheader need_rename.vcf --samples sample_names.txt -o ${dedup_bamfiles.baseName}.vcf
 
     """
   else if( variant_caller == 'samtools' )
     """
-    samtools -f $genome -p 1 $sample_bam > ${sample_bam.baseName}.vcf
+    samtools -f $genome -p 1 $dedup_bamfiles > ${dedup_bamfiles.baseName}.vcf
     """
   else
     error "Invalid variant caller: ${variant_caller}"
