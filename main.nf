@@ -1078,14 +1078,13 @@ if (params.snpeffDb == 'build') {
 
 
 process '4E_Snpeff' {
-  publishDir "${params.outdir}/SnpEff", mode: "link", overwrite: true
+  publishDir "${params.outdir}/snpEff", mode: "link", overwrite: true
 
   input:
     file filtered_vcf from filtered_vcfs_snpEff
     file snpeff_config from run_config
   output:
-    set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt") into snpEffResults
-    file "${filtered_vcf.baseName}_snpEff.csv" into snpEffResultsMultiQC
+    set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt"), file("${filtered_vcf.baseName}_snpEff.csv") into snpEffResults
   script:
   """
   snpEff -Xmx4g \
@@ -1221,7 +1220,7 @@ process '6A_multiqc' {
     file ('rseqc/*') from rseqc_results.collect().ifEmpty([])
     file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml
-    file ('SnpEff/*') from snpEffResultsMultiQC.collect().ifEmpty([])
+    file ('snpEff/*') from snpEffResults.collect().ifEmpty([])
     file workflow_summary from create_workflow_summary(summary)
 
     output:
