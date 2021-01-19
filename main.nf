@@ -541,19 +541,19 @@ process '2A_read_mapping' {
     file genome_bwa_pac
     file genome_bwa_sa
   output:
-    file "sample_${sampleNumber}_sorted.bam" into bamfiles
-    file "sample_${sampleNumber}_sorted.bai" into bamindexfiles
-    file "sample_${sampleNumber}_sorted.bam" into bam_rseqc
-    file "sample_${sampleNumber}_sorted.bai" into bamindexfiles_rseqc
-    file "sample_${sampleNumber}_sorted.bam" into bam_preseq
-    file "sample_${sampleNumber}_sorted.bam" into bam_forSubsamp
-    file "sample_${sampleNumber}_sorted.bam" into bam_skipSubsamp
-    file "sample_${sampleNumber}_sorted.bam" into bam_featurecounts
+    file "sample_${sampleNumber}.sorted.bam" into bamfiles
+    file "sample_${sampleNumber}.sorted.bai" into bamindexfiles
+    file "sample_${sampleNumber}.sorted.bam" into bam_rseqc
+    file "sample_${sampleNumber}.sorted.bai" into bamindexfiles_rseqc
+    file "sample_${sampleNumber}.sorted.bam" into bam_preseq
+    file "sample_${sampleNumber}.sorted.bam" into bam_forSubsamp
+    file "sample_${sampleNumber}.sorted.bam" into bam_skipSubsamp
+    file "sample_${sampleNumber}.sorted.bam" into bam_featurecounts
   script:
   if( aligner == 'bwa-mem' )
     """
-    bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}_sorted.bam
-    samtools index sample_${sampleNumber}_sorted.bam sample_${sampleNumber}_sorted.bai
+    bwa mem $genome $forwardTrimmed $reverseTrimmed | samtools sort -O BAM -o sample_${sampleNumber}.sorted.bam
+    samtools index sample_${sampleNumber}.sorted.bam sample_${sampleNumber}.sorted.bai
     """
 
   else
@@ -650,14 +650,14 @@ process '2F_mark_duplicates' {
   input:
     file sample_bam from bamfiles
   output:
-    file "${sample_bam.baseName}_dedup.bam" into dedup_bamfiles
-    file "${sample_bam.baseName}_dedup.bam" into bam_md
-    file "${sample_bam.baseName}_dedup.bam.bai"
+    file "${sample_bam.baseName}.dedup.bam" into dedup_bamfiles
+    file "${sample_bam.baseName}.dedup.bam" into bam_md
+    file "${sample_bam.baseName}.dedup.bam.bai"
     file "${sample_bam.baseName}.txt" into picard_results
   script:
     """
-    picard MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}_dedup.bam METRICS_FILE=${sample_bam.baseName}.txt ASSUME_SORTED=true REMOVE_DUPLICATES=false
-    samtools index ${sample_bam.baseName}_dedup.bam
+    picard MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}.dedup.bam METRICS_FILE=${sample_bam.baseName}.txt ASSUME_SORTED=true REMOVE_DUPLICATES=false
+    samtools index ${sample_bam.baseName}.dedup.bam
     """
 }
 
