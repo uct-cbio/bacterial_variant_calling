@@ -122,6 +122,8 @@ ch_biotypes_header = Channel.fromPath("$baseDir/assets/biotypes_header.txt")
 Channel.fromPath("$baseDir/assets/where_are_my_files.txt")
        .into{ch_where_trim_galore; ch_where_star; ch_where_hisat2; ch_where_hisat2_sort}
 
+
+
 // Define regular variables so that they can be overwritten
 clip_r1 = params.clip_r1
 clip_r2 = params.clip_r2
@@ -130,6 +132,9 @@ three_prime_clip_r2 = params.three_prime_clip_r2
 forward_stranded = params.forward_stranded
 reverse_stranded = params.reverse_stranded
 unstranded = params.unstranded
+params.skip_multiqc = false
+
+
 
 // Preset trimming options
 if (params.pico){
