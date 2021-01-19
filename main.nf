@@ -933,7 +933,7 @@ process '4A_call_variants' {
 
   input:
     file genome from genome_file
-    set dedup_bamfiles, dedup_bamindex from dupradar_bamfiles
+    set dedup_bamfiles, dedup_bamindex from dedup_bamfiles
   output:
     set file("${dedup_bamfiles.baseName}.vcf"), file("$dedup_bamfiles") into vcf_bam_files
 
