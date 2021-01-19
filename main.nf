@@ -695,14 +695,6 @@ process '2G_dupradar' {
 
 
 
-/*
- * STEP 8 Feature counts
- */
-
-/*
- * STEP 9 - Merge featurecounts
- */
-
 
 /*
  * ------------------------------------ ANALYSIS PART 3: Virulence and DB analysis ------------------------------------
@@ -876,7 +868,7 @@ if( params.vf_db ) {
 }
 
 /*
- * Process 3D: Plasmid resistome analysis
+ * Process 3D: Plasmid resistome analysis - CHECK WHERE THESE FILES ARE PULLED FROM
  */
 
 if( params.plasmid_db ) {
@@ -894,7 +886,7 @@ if( params.plasmid_db ) {
 
             """
             bowtie2-build $plasmid_db plasmid.index --threads ${threads}
-        """
+            """
     }
     /*
          * Align reads to plasmid database with Bowtie2
@@ -1032,13 +1024,17 @@ if (params.snpeffDb == 'build') {
 
    # Make a new folder in snpEffDB
    mkdir newBacGenome
+
    # Copy genome file, rename to sequences.fa
    mv $genome newBacGenome/sequences.fa
+
    # Copy ann file, rename genes.gff
    mv gff newBacGenome/genes.gff
+
    # Copy config from repo
    cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
    sed -i 's+./data/+${params.outdir}snpEffDB/+' snpEff.config
+
    # Edit the snpEff.config, add: newBacGenome.genome: newBacGenome
    echo "newBacGenome.genome: newBacGenome" >> snpEff.config
    """
@@ -1084,6 +1080,7 @@ process '4E_Snpeff' {
     file snpeff_config from run_config
   output:
     set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt") into snpEffResults
+    file "${filtered_vcf.baseName}_snpEff.csv" into snpEffResultsMultiQC
   script:
   """
   snpEff -Xmx4g \
@@ -1217,8 +1214,9 @@ process '6A_multiqc' {
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
     file ('trimgalore/*') from trimgalore_results.collect()
     file ('rseqc/*') from rseqc_results.collect().ifEmpty([])
-    /* file ('dupradar/*') from dupradar_results.collect().ifEmpty([])  */
+    file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml
+    file ('SnpEff/*') from snpEffResultsMultiQC.collect().ifEmpty([])
     file workflow_summary from create_workflow_summary(summary)
 
     output:
