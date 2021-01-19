@@ -459,7 +459,7 @@ newSampleSheetFastQC
     mv $R1 sample_${number}_R1.fq
     mv $R2 sample_${number}_R1.fq
 
-    fastqc -q $R1 $R2
+    fastqc -q sample_${number}_R1.fq sample_${number}_R1.fq
     """
 }
 
