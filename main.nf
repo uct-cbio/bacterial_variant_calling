@@ -71,10 +71,10 @@ def helpMessage() {
 aligner = 'mafft'
 
 // Configurable variables
-params.name = false
-params.project = false
-params.email = false
-params.plaintext_email = false
+params.name             = false
+params.project          = false
+params.email            = false
+params.plaintext_email  = false
 
 // Check if genome exists in the config file
 if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
@@ -106,33 +106,6 @@ if (params.help){
     helpMessage()
     exit 0
 }
-
-/*
- * Define the default parameters
- */
-
-//params.outdir            = "$baseDir"
-//params.SRAdir            = "$baseDir/"
-
-params.subsampFilesizeThreshold = 10000000000
-
-ch_mdsplot_header = Channel.fromPath("$baseDir/assets/mdsplot_header.txt")
-ch_heatmap_header = Channel.fromPath("$baseDir/assets/heatmap_header.txt")
-ch_biotypes_header = Channel.fromPath("$baseDir/assets/biotypes_header.txt")
-Channel.fromPath("$baseDir/assets/where_are_my_files.txt")
-       .into{ch_where_trim_galore; ch_where_star; ch_where_hisat2; ch_where_hisat2_sort}
-
-
-
-// Define regular variables so that they can be overwritten
-clip_r1 = params.clip_r1
-clip_r2 = params.clip_r2
-three_prime_clip_r1 = params.three_prime_clip_r1
-three_prime_clip_r2 = params.three_prime_clip_r2
-forward_stranded = params.forward_stranded
-reverse_stranded = params.reverse_stranded
-unstranded = params.unstranded
-params.skip_multiqc = false
 
 
 
@@ -197,23 +170,39 @@ SRA dir  : $params.SRAdir
  *  Parse the input parameters
  */
 
-genome_file     = file(params.genome)
-sample_sheet    = file(params.reads)
-reads_ch        = Channel.fromFilePairs(params.reads)
-threads         = 4
-aligner         = params.aligner
-variant_caller  = params.variant_caller
-vcf_qual_cutoff = params.vcf_qual_cutoff
-SRAdir          = params.SRAdir
-file_ext        = 'int'
+genome_file             = file(params.genome)
+sample_sheet            = file(params.reads)
+reads_ch                = Channel.fromFilePairs(params.reads)
+threads                 = 4
+aligner                 = params.aligner
+variant_caller          = params.variant_caller
+vcf_qual_cutoff         = params.vcf_qual_cutoff
+SRAdir                  = params.SRAdir
+file_ext                = 'int'
 
-params.skip_qc      = false
-params.skip_rseqc   = false
-params.skip_preseq  = true
+params.skip_qc          = false
+params.skip_rseqc       = false
+params.skip_preseq      = true
+params.skip_multiqc     = false
+params.subsampFilesizeThreshold = 10000000000
 
+
+// Read clipping and strandedness
+clip_r1                 = params.clip_r1
+clip_r2                 = params.clip_r2
+three_prime_clip_r1     = params.three_prime_clip_r1
+three_prime_clip_r2     = params.three_prime_clip_r2
+forward_stranded        = params.forward_stranded
+reverse_stranded        = params.reverse_stranded
+unstranded              = params.unstranded
+
+
+// SRST and MLST parameters
 srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
-// From https://pubmlst.org/data/dbases.xml
+
+
+// From https://pubmlst.org/data/dbases.xml             <----------------------- This needs a tweak to be generalised
 mlst_species_srst2 = "Streptococcus pneumoniae"
 mlst_definitions_srst2 = "spneumoniae"
 mlst_seperator_srst2 = "_"
@@ -640,7 +629,7 @@ process '2B_rseqc' {
 
 
 /*
- * Process 2F: Mark duplicate reads
+ * Process 2F: Mark duplicate reads  --- Edit file naming
  */
 
 process '2F_mark_duplicates' {
@@ -651,7 +640,7 @@ process '2F_mark_duplicates' {
     file sample_bam from bamfiles
   output:
     file "${sample_bam.baseName}.dedup.bam" into dedup_bamfiles
-    file "${sample_bam.baseName}.dedup.bam" into bam_md
+    file "${sample_bam.baseName}.dedup.bam" into dupradar_bamfiles
     file "${sample_bam.baseName}.dedup.bam.bai"
     file "${sample_bam.baseName}.txt" into picard_results
   script:
@@ -669,29 +658,18 @@ process '2F_mark_duplicates' {
 
 process '2G_dupradar' {
     label 'low_memory'
-    tag "${bam_md.baseName - '.sorted.markDups'}"
-    publishDir "${params.outdir}/dupradar", mode: 'copy',
-        saveAs: {filename ->
-            if (filename.indexOf("_duprateExpDens.pdf") > 0) "scatter_plots/$filename"
-            else if (filename.indexOf("_duprateExpBoxplot.pdf") > 0) "box_plots/$filename"
-            else if (filename.indexOf("_expressionHist.pdf") > 0) "histograms/$filename"
-            else if (filename.indexOf("_dupMatrix.txt") > 0) "gene_data/$filename"
-            else if (filename.indexOf("_duprateExpDensCurve.txt") > 0) "scatter_curve_data/$filename"
-            else if (filename.indexOf("_intercept_slope.txt") > 0) "intercepts_slopes/$filename"
-            else "$filename"
-        }
+    tag "${dupradar_bamfiles.baseName - '.sorted.markDups'}"
+    publishDir "${params.outdir}/dupradar", mode: 'copy'
 
-    when:
-    !params.skip_qc && !params.skip_dupradar
 
     input:
-    file bam_md
+    file dupradar_bamfiles
     file gtf from gtf_dupradar
 
     output:
     file "*.{pdf,txt}" into dupradar_results
 
-    script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
+    script: // This script was bundled with the nfcore/rnaseq pipeline in nfcore/rnaseq/bin/
     def dupradar_direction = 0
     if (forward_stranded && !unstranded) {
         dupradar_direction = 1
@@ -700,7 +678,7 @@ process '2G_dupradar' {
     }
     def paired = params.singleEnd ? 'single' :  'paired'
     """
-    dupRadar.r $bam_md $gtf $dupradar_direction $paired ${task.cpus}
+    dupRadar.r $dupradar_bamfiles $gtf $dupradar_direction $paired ${task.cpus}
     """
 }
 
