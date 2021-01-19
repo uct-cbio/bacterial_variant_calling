@@ -935,7 +935,7 @@ process '4A_call_variants' {
     file genome from genome_file
     set file(dedup_bamfile), file(dedup_bamindex) from dedup_bamfiles
   output:
-    set file("${dedup_bamfile.baseName}.vcf"), file("dedup_bamfile") into vcf_bam_files
+    set file("${dedup_bamfile.baseName}.vcf"), file("$dedup_bamfile") into vcf_bam_files
 
   script:
   if( variant_caller == 'freebayes' )
