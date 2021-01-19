@@ -662,13 +662,15 @@ process '2G_dupradar' {
 
 
     input:
-    set dupradar_bamfiles, dupradar_bamindex from dupradar_bamfiles
+    set file(dupradar_bamfiles), file(dupradar_bamindex) from dupradar_bamfiles
     file gtf from gtf_dupradar
 
     output:
     file "*.{pdf,txt}" into dupradar_results
 
-    script: // This script was bundled with the nfcore/rnaseq pipeline in nfcore/rnaseq/bin/
+    script:
+
+    // This script was bundled with the nfcore/rnaseq pipeline in nfcore/rnaseq/bin/
     def dupradar_direction = 0
     if (forward_stranded && !unstranded) {
         dupradar_direction = 1
@@ -676,6 +678,7 @@ process '2G_dupradar' {
         dupradar_direction = 2
     }
     def paired = params.singleEnd ? 'single' :  'paired'
+
     """
     dupRadar.r $dupradar_bamfiles $gtf $dupradar_direction $paired ${task.cpus}
     """
