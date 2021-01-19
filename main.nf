@@ -456,10 +456,10 @@ newSampleSheetFastQC
 
     script:
     """
-    mv $R1 sample_${number}_R1.fq
-    mv $R2 sample_${number}_R1.fq
+    mv $R1 sample_${number}_R1.fq.gz
+    mv $R2 sample_${number}_R1.fq.gz
 
-    fastqc -q sample_${number}_R1.fq sample_${number}_R1.fq
+    fastqc -q sample_${number}_R1.fq.gz sample_${number}_R1.fq.gz
     """
 }
 
