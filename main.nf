@@ -933,21 +933,21 @@ process '4A_call_variants' {
 
   input:
     file genome from genome_file
-    set dedup_bamfiles, dedup_bamindex from dedup_bamfiles
+    set file(dedup_bamfile), file(dedup_bamindex) from dedup_bamfiles
   output:
-    set file("${dedup_bamfiles.baseName}.vcf"), file("$dedup_bamfiles") into vcf_bam_files
+    set file("${dedup_bamfile.baseName}.vcf"), file("dedup_bamfile") into vcf_bam_files
 
   script:
   if( variant_caller == 'freebayes' )
     """
-    freebayes -f $genome -p 1 $dedup_bamfiles > need_rename.vcf
-    echo "unknown ${dedup_bamfiles.baseName}\n" > sample_names.txt
-    bcftools reheader need_rename.vcf --samples sample_names.txt -o ${dedup_bamfiles.baseName}.vcf
+    freebayes -f $genome -p 1 dedup_bamfile > need_rename.vcf
+    echo "unknown ${dedup_bamfile.baseName}\n" > sample_names.txt
+    bcftools reheader need_rename.vcf --samples sample_names.txt -o ${dedup_bamfile.baseName}.vcf
 
     """
   else if( variant_caller == 'samtools' )
     """
-    samtools -f $genome -p 1 $dedup_bamfiles > ${dedup_bamfiles.baseName}.vcf
+    samtools -f $genome -p 1 dedup_bamfile > ${dedup_bamfile.baseName}.vcf
     """
   else
     error "Invalid variant caller: ${variant_caller}"
