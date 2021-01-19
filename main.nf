@@ -661,11 +661,10 @@ process '2G_dupradar' {
     publishDir "${params.outdir}/dupradar", mode: "link", overwrite: true
 
     input:
-    set file(bamfile), file(bamindex) from dupradar_bamfiles
-    file gtf from gtf_dupradar
-
+      set file(bamfile), file(bamindex) from dupradar_bamfiles
+      file gtf from gtf_dupradar
     output:
-    file "*.{pdf,txt}" into dupradar_results
+      file "*.{pdf,txt}" into dupradar_results
 
     script:
 
