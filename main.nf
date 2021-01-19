@@ -641,6 +641,8 @@ process '2B_rseqc' {
 
 process '2F_mark_duplicates' {
   label 'high_memory'
+  publishDir "${params.outdir}/picard", mode: "copy"
+
   input:
     file sample_bam from bamfiles
   output:
@@ -1221,6 +1223,7 @@ process '6A_multiqc' {
     file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml
     file ('snpEff/*') from snpEffResults.collect().ifEmpty([])
+    file ('picard/*') from picard_results
     file workflow_summary from create_workflow_summary(summary)
 
     output:

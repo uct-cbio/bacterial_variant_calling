@@ -11,6 +11,8 @@ top_modules:
     - 'sample-similarity'
     - 'DupRadar'
     - 'biotype-counts'
+    - 'snpeff'
+    - 'picard'
 
 report_section_order:
     software_versions:
