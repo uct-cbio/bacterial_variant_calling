@@ -456,10 +456,12 @@ newSampleSheetFastQC
 
     script:
     """
-    mv $R1 sample_${number}_R1.fq.gz
-    mv $R2 sample_${number}_R1.fq.gz
+    #  MiSeq file naming convention (samplename_S1_L001_[R1]_001)
 
-    fastqc -q sample_${number}_R1.fq.gz sample_${number}_R1.fq.gz
+    mv $R1 sample_${number}_R1_001.fq.gz
+    mv $R2 sample_${number}_R2_001.fq.gz
+
+    fastqc -q sample_${number}_R1.fq.gz sample_${number}_R2.fq.gz
     """
 }
 
