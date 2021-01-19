@@ -657,12 +657,11 @@ process '2F_mark_duplicates' {
 
 process '2G_dupradar' {
     label 'low_memory'
-    tag "${dupradar_bamfiles.baseName - '.sorted.markDups'}"
-    publishDir "${params.outdir}/dupradar", mode: 'copy'
-
+    tag "${bamfile.baseName}"
+    publishDir "${params.outdir}/dupradar", mode: "link", overwrite: true
 
     input:
-    set file(dupradar_bamfiles), file(dupradar_bamindex) from dupradar_bamfiles
+    set file(bamfile), file(bamindex) from dupradar_bamfiles
     file gtf from gtf_dupradar
 
     output:
@@ -680,10 +679,37 @@ process '2G_dupradar' {
     def paired = params.singleEnd ? 'single' :  'paired'
 
     """
-    dupRadar.r $dupradar_bamfiles $gtf $dupradar_direction $paired ${task.cpus}
+    dupRadar.r $bamfile $gtf $dupradar_direction $paired ${task.cpus}
     """
 }
 
+
+
+process '4A_call_variants' {
+
+  publishDir "${params.outdir}/variants", mode: "link", overwrite: true
+
+  input:
+    file genome from genome_file
+    set file(dedup_bamfile), file(dedup_bamindex) from dedup_bamfiles
+  output:
+    set file("${dedup_bamfile.baseName}.vcf"), file("$dedup_bamfile") into vcf_bam_files
+
+  script:
+  if( variant_caller == 'freebayes' )
+    """
+    freebayes -f $genome -p 1 $dedup_bamfile > need_rename.vcf
+    echo "unknown ${dedup_bamfile.baseName}\n" > sample_names.txt
+    bcftools reheader need_rename.vcf --samples sample_names.txt -o ${dedup_bamfile.baseName}.vcf
+
+    """
+  else if( variant_caller == 'samtools' )
+    """
+    samtools -f $genome -p 1 dedup_bamfile > ${dedup_bamfile.baseName}.vcf
+    """
+  else
+    error "Invalid variant caller: ${variant_caller}"
+}
 
 
 
@@ -954,8 +980,6 @@ process '4A_call_variants' {
     """
   else
     error "Invalid variant caller: ${variant_caller}"
-
-
 }
 
 /*
