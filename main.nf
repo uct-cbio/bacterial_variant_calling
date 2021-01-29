@@ -276,7 +276,7 @@ if(!params.bed12){
         file "${gff.baseName}.bed" into bed_rseqc, bed_genebody_coverage
 
         """
-        gff2bed $gff > ${gff.baseName}.bed
+        gtf2bed $gff > ${gff.baseName}.bed
         """
     }
 }
