@@ -645,7 +645,7 @@ process '2F_mark_duplicates' {
     file "${sample_bam.baseName}.txt" into picard_results
   script:
     """
-    picard MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}.dedup.bam METRICS_FILE=${sample_bam.baseName}.txt ASSUME_SORTED=true REMOVE_DUPLICATES=false
+    picard -Xmx16g MarkDuplicates INPUT=$sample_bam OUTPUT=${sample_bam.baseName}.dedup.bam METRICS_FILE=${sample_bam.baseName}.txt ASSUME_SORTED=true REMOVE_DUPLICATES=false
     samtools index ${sample_bam.baseName}.dedup.bam
     """
 }
