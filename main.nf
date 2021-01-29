@@ -476,10 +476,10 @@ process '1F_trim_galore' {
     set number, file(R1), file(R2) from newSampleChannel
 
     output:
-    file "*_R1_001.fq.gz" into forwardTrimmed
-    file "*_R2_001.fq.gz" into reverseTrimmed
-    file "*_R1_001.fq.gz" into forward_trimmed_reads_for_srst2
-    file "*_R2_001.fq.gz" into reverse_trimmed_reads_for_srst2
+    file "*_R1_001_trimmed.fq.gz" into forwardTrimmed
+    file "*_R2_001_trimmed.fq.gz" into reverseTrimmed
+    file "*_R1_001_trimmed.fq.gz" into forward_trimmed_reads_for_srst2
+    file "*_R2_001_trimmed.fq.gz" into reverse_trimmed_reads_for_srst2
 
     file "*trimming_report.txt" into trimgalore_results
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
@@ -504,8 +504,8 @@ process '1F_trim_galore' {
 
         rename 's/fastq.gz/fq.gz/' *.fastq.gz
 
-        rename 's/_val_1/_R1_001/' *.fq.gz
-        rename 's/_val_2/_R2_001/' *.fq.gz
+        #rename 's/_val_1/_R1_001/' *.fq.gz
+        #rename 's/_val_2/_R2_001/' *.fq.gz
         """
     }
 }
