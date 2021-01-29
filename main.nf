@@ -654,7 +654,7 @@ process '2F_mark_duplicates' {
 /*
  * Process 2G: dupradar
  */
-
+/*
 process '2G_dupradar' {
     label 'low_memory'
     tag "${bamfile.baseName}"
@@ -668,7 +668,6 @@ process '2G_dupradar' {
 
     script:
 
-    // This script was bundled with the nfcore/rnaseq pipeline in nfcore/rnaseq/bin/
     def dupradar_direction = 0
     if (forward_stranded && !unstranded) {
         dupradar_direction = 1
@@ -681,6 +680,7 @@ process '2G_dupradar' {
     dupRadar.r $bamfile $gtf $dupradar_direction $paired ${task.cpus}
     """
 }
+*/
 
 
 /*
@@ -1198,7 +1198,7 @@ process '6A_multiqc' {
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
     file ('trimgalore/*') from trimgalore_results.collect()
     file ('rseqc/*') from rseqc_results.collect().ifEmpty([])
-    file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
+    //file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml
     file ('snpEff/*') from snpEffResults.collect().ifEmpty([])
     file ('picard/*') from picard_results
