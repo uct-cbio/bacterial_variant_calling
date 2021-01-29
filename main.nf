@@ -232,8 +232,8 @@ if(params.gff){
       file gff from gffFile
 
       output:
-      file "${gff.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12, gtf_star, gtf_dupradar, gtf_featureCounts
-      file "${gff.baseName}.gff3" into snpeff_gff
+      file "${gff.baseName}.gtf" into gtf_makeSTARindex, gtf_star, gtf_dupradar, gtf_featureCounts
+      file "${gff.baseName}.gff3" into snpeff_gff, gff_makeBED12
 
       script:
       """
@@ -248,12 +248,12 @@ if(params.gff){
 
   output:
 
-  file "${gtf.baseName}.gtf" into gtf_makeSTARindex, gtf_makeBED12, gtf_star, gtf_dupradar, gtf_featureCounts
-  file "${gtf.baseName}.gff" into snpeff_gff
+  file "${gtf.baseName}.gtf" into gtf_makeSTARindex, gtf_star, gtf_dupradar, gtf_featureCounts
+  file "${gtf.baseName}.gff3" into snpeff_gff, gff_makeBED12
 
   script:
   """
-  gffread $gtf -o ${gtf.baseName}.gff
+  gffread $gtf -o ${gtf.baseName}.gff3
   """
 
   }
@@ -270,14 +270,14 @@ if(!params.bed12){
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
         input:
-        file gtf from gtf_makeBED12
+        file gtf from gff_makeBED12
 
         output:
         file "${gtf.baseName}.bed" into bed_rseqc, bed_genebody_coverage
 
         script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
         """
-        gtf2bed $gtf > ${gtf.baseName}.bed
+        gff2bed $gff > ${gtf.baseName}.bed
         """
     }
 }
