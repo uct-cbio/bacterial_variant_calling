@@ -519,6 +519,7 @@ process '1F_trim_galore' {
  */
 
 process '2A_read_mapping' {
+  label 'high_memory'
   input:
     file forwardTrimmed
     file reverseTrimmed
