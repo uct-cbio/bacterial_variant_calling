@@ -277,7 +277,7 @@ if(!params.bed12){
 
         script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
         """
-        gff2bed $gff > ${gtf.baseName}.bed
+        gtf2bed $gtf > ${gtf.baseName}.bed
         """
     }
 }
