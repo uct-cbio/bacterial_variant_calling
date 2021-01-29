@@ -1014,7 +1014,7 @@ if (params.snpeffDb == 'build') {
    mv $genome newBacGenome/sequences.fa
 
    # Copy ann file, rename genes.gff
-   mv gff newBacGenome/genes.gff
+   mv $gff newBacGenome/genes.gff
 
    # Copy config from repo
    cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
