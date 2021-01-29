@@ -457,11 +457,11 @@ newSampleSheetFastQC
 
 
 /*
- * Process 1F: Trim Galore!
+ * Process 1F: Trim Galore!  ----------------------------- Need to find a way to standardise output / input
  */
 
 process '1F_trim_galore' {
-    label 'low_memory'
+    label 'high_memory'
     tag "$name"
     publishDir "${params.outdir}/trim_galore", mode: 'copy',
         saveAs: {filename ->
