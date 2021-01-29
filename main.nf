@@ -232,8 +232,8 @@ if(params.gff){
       file gff from gffFile
 
       output:
-      file "${gff.baseName}.gtf" into gtf_makeSTARindex, gtf_star, gtf_dupradar, gtf_featureCounts
-      file "${gff.baseName}.gff3" into snpeff_gff, gff_makeBED12
+      file "${gff.baseName}.gtf" into yolo
+      file "${gff.baseName}.gff3" into snpeff_gff, gff_makeBED12, gtf_makeSTARindex, gtf_star, gtf_dupradar, gtf_featureCounts
 
       script:
       """
