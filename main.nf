@@ -265,19 +265,18 @@ if(params.gff){
  */
 if(!params.bed12){
     process makeBED12 {
-        tag "$gtf"
+        tag "$gff"
         publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
         input:
-        file gtf from gff_makeBED12
+        file gff from gff_makeBED12
 
         output:
-        file "${gtf.baseName}.bed" into bed_rseqc, bed_genebody_coverage
+        file "${gff.baseName}.bed" into bed_rseqc, bed_genebody_coverage
 
-        script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
         """
-        gtf2bed $gtf > ${gtf.baseName}.bed
+        gff2bed $gff > ${gff.baseName}.bed
         """
     }
 }
