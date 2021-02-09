@@ -662,7 +662,7 @@ process '2G_dupradar' {
 
     input:
       set file(bamfile), file(bamindex) from dupradar_bamfiles
-      file gtf from gtf_dupradar
+      file gtf from gtf_dupradar.collect()
     output:
       file "*.{pdf,txt}" into dupradar_results
 
@@ -1203,7 +1203,7 @@ process '6A_multiqc' {
     //file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml
     file ('snpEff/*') from snpEffResults.collect().ifEmpty([])
-    file ('picard/*') from picard_results
+    file ('picard/*') from picard_results.collect().ifEmpty([])
     file workflow_summary from create_workflow_summary(summary)
 
     output:
