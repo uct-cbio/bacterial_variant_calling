@@ -472,41 +472,41 @@ process '1F_trim_galore' {
         }
 
     input:
-    set number, file(R1), file(R2) from newSampleChannel
+        set number, file(R1), file(R2) from newSampleChannel
 
     output:
-    file "*_R1_001_trimmed.fq.gz" into forwardTrimmed
-    file "*_R2_001_trimmed.fq.gz" into reverseTrimmed
-    file "*_R1_001_trimmed.fq.gz" into forward_trimmed_reads_for_srst2
-    file "*_R2_001_trimmed.fq.gz" into reverse_trimmed_reads_for_srst2
+        file "*_R1_001_trimmed.fq.gz" into forwardTrimmed
+        file "*_R2_001_trimmed.fq.gz" into reverseTrimmed
+        file "*_R1_001_trimmed.fq.gz" into forward_trimmed_reads_for_srst2
+        file "*_R2_001_trimmed.fq.gz" into reverse_trimmed_reads_for_srst2
 
-    file "*trimming_report.txt" into trimgalore_results
-    file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
-    val "$number" into sampleNumber_srst2
-    val "$number" into sampleNumber
-    set number, file("*_R1_001.fq.gz"), file("*_R2_001.fq.gz") into vf_read_pairs
+        set file("*trimming_report.txt"),  file("*_fastqc.{zip,html}") into trimgalore_results
+
+        val "$number" into sampleNumber_srst2
+        val "$number" into sampleNumber
+        set number, file("*_R1_001.fq.gz"), file("*_R2_001.fq.gz") into vf_read_pairs
 
     script:
-    c_r1 = clip_r1 > 0 ? "--clip_r1 ${clip_r1}" : ''
-    c_r2 = clip_r2 > 0 ? "--clip_r2 ${clip_r2}" : ''
-    tpc_r1 = three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${three_prime_clip_r1}" : ''
-    tpc_r2 = three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${three_prime_clip_r2}" : ''
-    if (params.singleEnd) {
-        """
-        trim_galore --fastqc --gzip $c_r1 $tpc_r1 $R1 $R2
-        """
-    } else {
-        """
-        trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $R1 $R2
+        c_r1 = clip_r1 > 0 ? "--clip_r1 ${clip_r1}" : ''
+        c_r2 = clip_r2 > 0 ? "--clip_r2 ${clip_r2}" : ''
+        tpc_r1 = three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${three_prime_clip_r1}" : ''
+        tpc_r2 = three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${three_prime_clip_r2}" : ''
+        if (params.singleEnd) {
+            """
+            trim_galore --fastqc --gzip $c_r1 $tpc_r1 $R1 $R2
+            """
+        } else {
+            """
+            trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $R1 $R2
 
-        #  MiSeq file naming convention (samplename_S1_L001_[R1]_001)
+            #  MiSeq file naming convention (samplename_S1_L001_[R1]_001)
 
-        rename 's/fastq.gz/fq.gz/' *.fastq.gz
+            rename 's/fastq.gz/fq.gz/' *.fastq.gz
 
-        rename 's/_val_1/_trimmed/' *.fq.gz
-        rename 's/_val_2/_trimmed/' *.fq.gz
-        """
-    }
+            rename 's/_val_1/_trimmed/' *.fq.gz
+            rename 's/_val_2/_trimmed/' *.fq.gz
+            """
+        }
 }
 
 
@@ -1196,7 +1196,9 @@ process '6A_multiqc' {
     input:
     file multiqc_config from ch_multiqc_config
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
+
     file ('trimgalore/*') from trimgalore_results.collect()
+
     file ('rseqc/*') from rseqc_results.collect().ifEmpty([])
     //file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml
