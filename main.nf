@@ -984,7 +984,7 @@ process '4C_filter_variants' {
  * Process 4E: SnpEff analysis
  */
 
-\\ SnpEff is still not annotating correctly, probably due to database issues.
+/* SnpEff is still not annotating correctly, probably due to database issues. */
 
 
 if (params.snpeffDb == 'build') {
