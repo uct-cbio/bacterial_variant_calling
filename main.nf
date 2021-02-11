@@ -1007,10 +1007,10 @@ if (params.snpeffDb == 'build') {
    mkdir newBacGenome
 
    # Copy genome file, rename to sequences.fa
-   mv $genome newBacGenome/sequences.fa
+   mv $genome ${params.outdir}/snpEffDB/newBacGenome/sequences.fa
 
    # Copy ann file, rename genes.gff
-   mv $gff newBacGenome/genes.gff
+   mv $gff ${params.outdir}/snpEffDB/newBacGenome/genes.gff
 
    # Copy config from repo
    cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
