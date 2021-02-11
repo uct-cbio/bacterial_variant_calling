@@ -1014,7 +1014,7 @@ if (params.snpeffDb == 'build') {
 
    # Copy config from repo
    cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
-   sed -i 's+./data/+${params.outdir}snpEffDB/+' snpEff.config
+   sed -i 's+./data/+${params.outdir}/snpEffDB/+' snpEff.config
 
    # Edit the snpEff.config, add: newBacGenome.genome: newBacGenome
    echo "newBacGenome.genome: newBacGenome" >> snpEff.config
