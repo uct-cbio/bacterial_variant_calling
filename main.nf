@@ -1197,7 +1197,7 @@ process '6A_multiqc' {
     file multiqc_config from ch_multiqc_config
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
 
-    file ('trim_galore/*') from trimgalore_results.collect()
+    file ('trim_galore/*') from trimgalore_results.collect().ifEmpty([])
 
     file ('rseqc/*') from rseqc_results.collect().ifEmpty([])
     //file ('dupradar/*') from dupradar_results.collect().ifEmpty([])
