@@ -991,7 +991,7 @@ if (params.snpeffDb == 'build') {
 
   process '4E_Snpeff_setup_new_DB' {
 
-   publishDir "${params.outdir}/snpEffDB", mode: "link", overwrite: fase
+   publishDir "${params.outdir}/snpEffDB", mode: "link", overwrite: false
 
    input:
      file genome from genome_file
