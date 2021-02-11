@@ -462,14 +462,7 @@ newSampleSheetFastQC
 process '1F_trim_galore' {
     label 'high_memory'
     tag "$name"
-    publishDir "${params.outdir}/trim_galore", mode: 'copy',
-        saveAs: {filename ->
-            if (filename.indexOf("_fastqc") > 0) "FastQC/$filename"
-            else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
-            else if (!params.saveTrimmed && filename == "where_are_my_files.txt") filename
-            else if (params.saveTrimmed && filename != "where_are_my_files.txt") filename
-            else null
-        }
+    publishDir "${params.outdir}/trim_galore", mode: "link", overwrite: true
 
     input:
         set number, file(R1), file(R2) from newSampleChannel
@@ -990,6 +983,9 @@ process '4C_filter_variants' {
 /*
  * Process 4E: SnpEff analysis
  */
+
+\\ SnpEff is still not annotating correctly, probably due to database issues.
+
 
 if (params.snpeffDb == 'build') {
 
