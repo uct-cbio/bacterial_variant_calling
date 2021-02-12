@@ -1053,27 +1053,59 @@ if (params.snpeffDb == 'build') {
 }
 
 
-process '4E_Snpeff' {
-  publishDir "${params.outdir}/snpEff", mode: "link", overwrite: true
 
-  input:
-    file filtered_vcf from filtered_vcfs_snpEff
-    file snpeff_config from run_config
-  output:
-    set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt"), file("${filtered_vcf.baseName}_snpEff.csv") into snpEffResults
-  script:
-  """
-  snpEff -Xmx4g \
-    ${params.snpeffDb} \
-    -dataDir ${params.outdir}snpEffDB/ \
-    -csvStats ${filtered_vcf.baseName}_snpEff.csv \
-    -v \
-    -c ./snpEff.config \
-    ${filtered_vcf} \
-    > ${filtered_vcf.baseName}_snpEff.ann.vcf
-  mv snpEff_summary.html ${filtered_vcf.baseName}_snpEff.html
-  mv ${filtered_vcf.baseName}_snpEff.genes.txt ${filtered_vcf.baseName}_snpEff.txt
-  """
+if (params.snpeffDb == 'build') {
+
+
+    process '4E_Snpeff' {
+      publishDir "${params.outdir}/snpEff", mode: "link", overwrite: true
+
+      input:
+        file filtered_vcf from filtered_vcfs_snpEff
+        file snpeff_config from run_config
+      output:
+        set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt"), file("${filtered_vcf.baseName}_snpEff.csv") into snpEffResults
+      script:
+      """
+      snpEff -Xmx4g \
+        newBacGenome \
+        -dataDir ${params.outdir}snpEffDB/ \
+        -csvStats ${filtered_vcf.baseName}_snpEff.csv \
+        -v \
+        -c ./snpEff.config \
+        ${filtered_vcf} \
+        > ${filtered_vcf.baseName}_snpEff.ann.vcf
+      mv snpEff_summary.html ${filtered_vcf.baseName}_snpEff.html
+      mv ${filtered_vcf.baseName}_snpEff.genes.txt ${filtered_vcf.baseName}_snpEff.txt
+      """
+    }
+
+
+} else {
+
+    process '4E_Snpeff' {
+      publishDir "${params.outdir}/snpEff", mode: "link", overwrite: true
+
+      input:
+        file filtered_vcf from filtered_vcfs_snpEff
+        file snpeff_config from run_config
+      output:
+        set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt"), file("${filtered_vcf.baseName}_snpEff.csv") into snpEffResults
+      script:
+      """
+      snpEff -Xmx4g \
+        ${params.snpeffDb} \
+        -dataDir ${params.outdir}snpEffDB/ \
+        -csvStats ${filtered_vcf.baseName}_snpEff.csv \
+        -v \
+        -c ./snpEff.config \
+        ${filtered_vcf} \
+        > ${filtered_vcf.baseName}_snpEff.ann.vcf
+      mv snpEff_summary.html ${filtered_vcf.baseName}_snpEff.html
+      mv ${filtered_vcf.baseName}_snpEff.genes.txt ${filtered_vcf.baseName}_snpEff.txt
+      """
+    }
+
 }
 
 
