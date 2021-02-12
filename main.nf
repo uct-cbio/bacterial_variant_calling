@@ -1062,7 +1062,7 @@ if (params.snpeffDb == 'build') {
 
       input:
         file filtered_vcf from filtered_vcfs_snpEff
-        file snpeff_config from run_config
+        file snpeff_config from run_config.collect()
       output:
         set file("${filtered_vcf.baseName}_snpEff.ann.vcf"), file("${filtered_vcf.baseName}_snpEff.html"), file("${filtered_vcf.baseName}_snpEff.txt"), file("${filtered_vcf.baseName}_snpEff.csv") into snpEffResults
       script:
