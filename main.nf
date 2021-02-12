@@ -1069,7 +1069,7 @@ if (params.snpeffDb == 'build') {
       """
       snpEff -Xmx4g \
         newBacGenome \
-        -dataDir ${params.outdir}snpEffDB/ \
+        -dataDir ${params.outdir}/snpEffDB/ \
         -csvStats ${filtered_vcf.baseName}_snpEff.csv \
         -v \
         -c $snpeff_config \
