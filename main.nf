@@ -1072,7 +1072,7 @@ if (params.snpeffDb == 'build') {
         -dataDir ${params.outdir}snpEffDB/ \
         -csvStats ${filtered_vcf.baseName}_snpEff.csv \
         -v \
-        -c ./snpEff.config \
+        -c $snpeff_config \
         ${filtered_vcf} \
         > ${filtered_vcf.baseName}_snpEff.ann.vcf
       mv snpEff_summary.html ${filtered_vcf.baseName}_snpEff.html
