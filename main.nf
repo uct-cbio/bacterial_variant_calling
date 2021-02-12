@@ -1057,7 +1057,7 @@ if (params.snpeffDb == 'build') {
 if (params.snpeffDb == 'build') {
 
 
-    process '4E_Snpeff' {
+    process '4E_Snpeff_use_build' {
       publishDir "${params.outdir}/snpEff", mode: "link", overwrite: true
 
       input:
@@ -1083,7 +1083,7 @@ if (params.snpeffDb == 'build') {
 
 } else {
 
-    process '4E_Snpeff' {
+    process '4E_Snpeff_use_existing' {
       publishDir "${params.outdir}/snpEff", mode: "link", overwrite: true
 
       input:
