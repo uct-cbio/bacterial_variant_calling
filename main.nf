@@ -468,16 +468,16 @@ process '1F_trim_galore' {
         set number, file(R1), file(R2) from newSampleChannel
 
     output:
-        file "*_R1_001_trimmed.fq.gz" into forwardTrimmed
-        file "*_R2_001_trimmed.fq.gz" into reverseTrimmed
-        file "*_R1_001_trimmed.fq.gz" into forward_trimmed_reads_for_srst2
-        file "*_R2_001_trimmed.fq.gz" into reverse_trimmed_reads_for_srst2
+        file "${R1.baseName}_trimmed.fq.gz" into forwardTrimmed
+        file "${R2.baseName}_trimmed.fq.gz" into reverseTrimmed
+        file "${R1.baseName}_trimmed.fq.gz" into forward_trimmed_reads_for_srst2
+        file "${R2.baseName}_trimmed.fq.gz" into reverse_trimmed_reads_for_srst2
 
         set file("*trimming_report.txt"),  file("*_fastqc.{zip,html}") into trimgalore_results
 
         val "$number" into sampleNumber_srst2
         val "$number" into sampleNumber
-        set number, file("*_R1_001.fq.gz"), file("*_R2_001.fq.gz") into vf_read_pairs
+        set number, file("${R1.baseName}_trimmed.fq.gz"), file("${R2.baseName}_trimmed.fq.gz") into vf_read_pairs
 
     script:
         c_r1 = clip_r1 > 0 ? "--clip_r1 ${clip_r1}" : ''
