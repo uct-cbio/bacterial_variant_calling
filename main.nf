@@ -202,7 +202,7 @@ srst_min_gene_cov           = params.srst_min_gene_cov
 srst_max_gene_divergence    = params.srst_max_gene_divergence
 
 
-// From https://pubmlst.org/data/dbases.xml             <----------------------- This needs a tweak to be generalised
+// From https://pubmlst.org/data/dbases.xml                <----------------------- This needs a tweak to be generalised
 mlst_species_srst2 = "Streptococcus pneumoniae"
 mlst_definitions_srst2 = "spneumoniae"
 mlst_seperator_srst2 = "_"
@@ -223,6 +223,10 @@ summary['Data Type']        = params.singleEnd ? 'Single-End' : 'Paired-End'
  *
  * Convert GFF3 to GTF
  */
+
+// This process is the tricky part, most conversions fail silently and the run breaks downstream.
+// This is because there are no effective conversion tools available that I could find. Often using GTF throughout is
+// the best solution.
 
 if(params.gff){
   process convertGFFtoGTF {
@@ -286,10 +290,10 @@ if(!params.bed12){
 def create_workflow_summary(summary) {
     def yaml_file = workDir.resolve('workflow_summary_mqc.yaml')
     yaml_file.text  = """
-    id: 'nf-core-rnaseq-summary'
+    id: 'uct-bacterial-variant-summary'
     description: " - this information is collected when the pipeline is started."
-    section_name: 'nf-core/rnaseq Workflow Summary'
-    section_href: 'https://github.com/nf-core/rnaseq'
+    section_name: 'uct-cbio/bacterial_variant_calling Workflow Summary'
+    section_href: 'https://github.com/uct-cbio/bacterial_variant_calling'
     plot_type: 'html'
     data: |
         <dl class=\"dl-horizontal\">
@@ -303,7 +307,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 
 
 /*
- * Parse software version numbers -- The scrape_software_versions.py needs updating
+ * Parse software version numbers                            <----------- The scrape_software_versions.py needs updating
  */
 process get_software_versions {
 
@@ -314,17 +318,17 @@ process get_software_versions {
     """
     echo $workflow.manifest.version &> v_ngi_rnaseq.txt
     echo $workflow.nextflow.version &> v_nextflow.txt
-    fastqc --version &> v_fastqc.txt                        # Not working, works in Docker
-    cutadapt --version &> v_cutadapt.txt                    # Working
-    trim_galore --version &> v_trim_galore.txt              # Working
-    #bwa &> v_bwa.txt                                        # Working, not parsing
-    #preseq &> v_preseq.txt                                  # Not working libgsl.so.0: cannot open shared object file also in docker
-    read_duplication.py --version &> v_rseqc.txt            # Working
-    echo \$(bamCoverage --version 2>&1) > v_deeptools.txt       # unknown
+    fastqc --version &> v_fastqc.txt                                    # Not working, works in Docker
+    cutadapt --version &> v_cutadapt.txt                                # Working
+    trim_galore --version &> v_trim_galore.txt                          # Working
+    #bwa &> v_bwa.txt                                                   # Working, not parsing
+    #preseq &> v_preseq.txt                                             # Not working libgsl.so.0: cannot open shared object file also in docker
+    read_duplication.py --version &> v_rseqc.txt                        # Working
+    echo \$(bamCoverage --version 2>&1) > v_deeptools.txt               # unknown
     picard MarkDuplicates --version &> v_markduplicates.txt  || true    # Not working, not in docker either
-    samtools --version &> v_samtools.txt                    # Working
-    multiqc --version &> v_multiqc.txt                      # Working
-    #scrape_software_versions.py &> software_versions_mqc.yaml   # unknown
+    samtools --version &> v_samtools.txt                                # Working
+    multiqc --version &> v_multiqc.txt                                  # Working
+    #scrape_software_versions.py &> software_versions_mqc.yaml          # unknown
     echo "this" &> software_versions_mqc.yaml
     """
 }

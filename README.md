@@ -87,6 +87,15 @@ To create a Singularity image from a Docker image, please make use of
 [Docker to singularity](https://github.com/singularityware/docker2singularity). This is needed to run the pipeline on the
 UCT cluster. 
 
+## Known issues
+
+GFF vs GTF format
+
+Some tools require GFF and others GTF, and converting between the formats is often impossible due to poor standard 
+adoption. If the run fails, 90% of the time it is a format issue. The annotation files from NCBI are often the only ones
+that will work.
+
+Naming of fastq files
 
 ## Built With
 * [Nextflow](https://www.nextflow.io/)
@@ -96,7 +105,7 @@ UCT cluster.
 ## Credits
 This pipeline was developed by members of the Bioinformatics Support Team (BST) at the University of Cape Town. Dr.
 Jon Ambler is a member of CIDRI-Africa, and the main developer of this pipeline, using the layout and documentation
- outlined by Dr Katie Lennard and Gerrit Botha.
+ outlined by Dr Katie Lennard and Gerrit Botha. Adapted from the nf-core/rnaseq pipeline. 
 
 Additional thanks to Paolo Di Tommaso, the developer of NextFlow, for their help troubleshooting. 
 
