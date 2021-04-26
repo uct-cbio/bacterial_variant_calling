@@ -207,6 +207,8 @@ mlst_species_srst2 = "Streptococcus pneumoniae"
 mlst_definitions_srst2 = "spneumoniae"
 mlst_seperator_srst2 = "_"
 
+// Create a phylogenetic tree
+params.makeTree         = false
 
 // Header log info
 log.info nfcoreHeader()
@@ -398,6 +400,12 @@ process '1C_prepare_genome_bwa' {
 
 /*
  * Process 1D: Prepare and download samples as per sample sheet
+ *
+ * This is the process that takes the sample sheet csv, looks to see if there are any SRA identifiers, and downloads
+ * the fastq from SRA into the SRA download folder as specified in the run parameters.
+ * This requires an internet connection to the outside world.
+ * The process_samples.py code is included in the /bin/ directory. It can fail if fastq files have strange extensions.
+ * For example .fastq.zip.gz
  */
 
 process '1D_prepare_samples' {
@@ -417,6 +425,7 @@ process '1D_prepare_samples' {
   """
 }
 
+// This takes the newly created sample sheet and creates a new channel for it.
 
 newSampleSheet
   .splitCsv(header:true)
@@ -461,6 +470,11 @@ newSampleSheetFastQC
 
 /*
  * Process 1F: Trim Galore!  ----------------------------- Need to find a way to standardise output / input
+ *
+ * This process has difficulty with the creative naming schemes used for fastq files. Some tools expext the fastq files
+ * to follow the MiSeq file naming convention (samplename_S1_L001_[R1]_001) and so in this process we attempt to take
+ * the format of the fastq files and align them to that expectation. This can often fail.
+ *
  */
 
 process '1F_trim_galore' {
@@ -496,7 +510,7 @@ process '1F_trim_galore' {
             """
             trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $R1 $R2
 
-            #  MiSeq file naming convention (samplename_S1_L001_[R1]_001)
+            #  MiSeq file naming convention (samplename_S1_L001_[R1]_001) <----------------------- Trying to standardise
 
             rename 's/fastq.gz/fq.gz/' *.fastq.gz
 
@@ -619,6 +633,8 @@ process '2B_rseqc' {
 
 /*
  * Process 2E: preseq analysis NOT INSTALLED IN IMAGE
+ *
+ * Due to incompatibilities this tool was not included, but is available in the bacterial assembly pipeline.
  */
 
 
@@ -785,6 +801,10 @@ if( params.amr_db ) {
 
 /*
  * Process 3C: Virulence factor analysis
+ *
+ * Currently using the VFDB database from https://pubmed.ncbi.nlm.nih.gov/15608208/
+ * Adding this download path as a variable could be a good future update
+ *
  */
 
 if( params.vf_db ) {
@@ -852,7 +872,10 @@ if( params.vf_db ) {
 }
 
 /*
- * Process 3D: Plasmid resistome analysis - CHECK WHERE THESE FILES ARE PULLED FROM
+ * Process 3D: Plasmid resistome analysis
+ *
+ * The databases here are provided by files specified in the run parameters
+ *
  */
 
 if( params.plasmid_db ) {
@@ -920,6 +943,7 @@ if( params.plasmid_db ) {
  *
  * Process 4A: Call the variants
  *
+ * Freebayes and samtools are available, but most testing was done with Freebayes.
  */
 
 
@@ -951,6 +975,7 @@ process '4A_call_variants' {
 
 /*
  * Process 4B: Calculate coverage values for variant filtering
+ *
  */
 
 process '4B_calc_coverage' {
@@ -969,6 +994,7 @@ process '4B_calc_coverage' {
 
 /*
  * Process 4C: Variant filtering
+ *
  */
 
 process '4C_filter_variants' {
@@ -986,10 +1012,12 @@ process '4C_filter_variants' {
 
 /*
  * Process 4E: SnpEff analysis
+ *
+ *
+ * SnpEff is still not annotating correctly, probably due to database issues.
+ * Using existing DB not an issue.
+ * To create a new DB, follow the instructions in the comments below.
  */
-
-/* SnpEff is still not annotating correctly, probably due to database issues. */
-
 
 if (params.snpeffDb == 'build') {
 
@@ -1162,51 +1190,52 @@ process '4G_BuildConsensusSequence' {
  *********/
 
 
+if (params.makeTree) {
 
- /**********
- * PART 5: Phylogenetics
- *
- * Process 5A: Align consensus sequences
- */
+     /**********
+     * PART 5: Phylogenetics
+     *
+     * Process 5A: Align consensus sequences
+     */
 
-process '5A_mafft_alignment' {
+    process '5A_mafft_alignment' {
 
-  label 'high_memory'
+      label 'high_memory'
 
-  input:
-    file seq from consensus_files.collect()
-  output:
-    file "*.phy" into phylip_file
-  script:
-  """
-  cat *.fa > combined.fasta
-  mafft --retree 2 --maxiterate 2 combined.fasta > aligned.fasta
-  convbioseq -i fasta phylip aligned.fasta
-  """
+      input:
+        file seq from consensus_files.collect()
+      output:
+        file "*.phy" into phylip_file
+      script:
+      """
+      cat *.fa > combined.fasta
+      mafft --retree 2 --maxiterate 2 combined.fasta > aligned.fasta
+      convbioseq -i fasta phylip aligned.fasta
+      """
+    }
+
+
+    /*
+     * Process 5B: Run RAXML
+     */
+
+    process '5B_run_RAxML' {
+
+      publishDir "${params.outdir}/RAxML", mode: "link", overwrite: false
+
+      input:
+        file inphy from phylip_file
+        val threads from threads
+      output:
+        file "*.outFile" into RAxML_out
+
+      script:
+      """
+      /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 10 -N autoMRE -p 10
+      """
+    }
+
 }
-
-
-/*
- * Process 5B: Run RAXML
- */
-
-process '5B_run_RAxML' {
-
-  publishDir "${params.outdir}/RAxML", mode: "link", overwrite: false
-
-  input:
-    file inphy from phylip_file
-    val threads from threads
-  output:
-    file "*.outFile" into RAxML_out
-
-  script:
-  """
-  /standard-RAxML/raxmlHPC-PTHREADS-AVX -s $inphy -n outFile -m GTRCATX -T $threads -f a -x 10 -N autoMRE -p 10
-  """
-}
-
-
 
 /*
  *  END OF PART 5
