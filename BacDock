@@ -33,6 +33,7 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     && apt-get clean \
     && apt-get purge
 
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 RUN pip install --upgrade pip
 RUN pip install numpy
