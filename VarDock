@@ -82,4 +82,4 @@ ENV PATH "$PATH:/sratoolkit.2.11.3-ubuntu64/bin/:/vcf2fasta/"
 
 # Install trimmomatic
 
-RUN curl -L http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip > Trimmomatic-0.39.zip && unzip Trimmomatic-0.38.zip
+RUN curl -L http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip > Trimmomatic-0.39.zip && unzip Trimmomatic-0.39.zip
