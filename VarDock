@@ -56,7 +56,7 @@ RUN git clone git://github.com/samtools/bcftools.git; cd bcftools; autoheader &&
 RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
 
 # Install vcf2fasta
-RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
+RUN git clone https://github.com/egeza/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
 
 # Install convbioseq
 RUN easy_install biopython
