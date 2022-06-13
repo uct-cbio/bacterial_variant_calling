@@ -1,10 +1,9 @@
-FROM ubuntu:xenial
+FROM quay.io/cybozu/ubuntu:20.04
 
 RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     aufs-tools \
     automake \
     build-essential \
-    bowtie2 \
     cmake \
     curl \
     g++ \
@@ -23,11 +22,13 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     default-jre \
     git-core \
     bc \
+    unzip \
+    wget \
+    rename \
     python3 \
     python3-pip \
     python-pip \
-    unzip \
-    wget \
+    bowtie2 \
     xutils-dev \
     && apt-get clean \
     && apt-get purge
