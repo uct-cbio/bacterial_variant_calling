@@ -27,7 +27,6 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     rename \
     python3 \
     python3-pip \
-    python-pip \
     bowtie2 \
     xutils-dev \
     && apt-get clean \
