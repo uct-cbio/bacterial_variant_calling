@@ -34,24 +34,24 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
-RUN pip install --upgrade pip
-RUN pip install numpy
-RUN pip install scipy
-RUN pip install biopython
-RUN pip install git+https://github.com/katholt/srst2
-RUN pip install RSeQC
-RUN pip install multiqc
-RUN pip install venn
-RUN pip install pandas
+RUN python -m pip install --upgrade pip
+RUN python -m pip install numpy
+RUN python -m pip install scipy
+RUN python -m pip install biopython
+RUN python -m pip install git+https://github.com/katholt/srst2
+RUN python -m pip install RSeQC
+RUN python -m pip install multiqc
+RUN python -m pip install venn
+RUN python -m pip install pandas
 
 # install Picard Tools
-RUN curl -fksSL https://github.com/broadinstitute/picard/releases/download/2.9.0/picard.jar > /usr/local/bin/picard.jar && \
+RUN curl -fksSL https://github.com/broadinstitute/picard/releases/download/2.26.11/picard.jar > /usr/local/bin/picard.jar && \
     chmod +x /usr/local/bin/picard.jar
 
 # install VCFtools
-RUN curl -fksSL https://github.com/vcftools/vcftools/releases/download/v0.1.14/vcftools-0.1.14.tar.gz | tar xz && \
-    cd vcftools-0.1.14 && \
-    ./configure; make; make insta
+RUN curl -fksSL https://github.com/vcftools/vcftools/releases/download/v0.1.16/vcftools-0.1.16.tar.gz | tar xz && \
+    cd vcftools-0.1.16 && \
+    ./configure; make; make install
 
 # install STAR
 RUN curl -fksSL https://github.com/alexdobin/STAR/archive/2.5.2b.tar.gz | tar xz && \
@@ -59,20 +59,22 @@ RUN curl -fksSL https://github.com/alexdobin/STAR/archive/2.5.2b.tar.gz | tar xz
 
 
 # Install freebayes
-#RUN git clone --recursive https://github.com/ekg/freebayes
-#RUN cd freebayes && make; make install
+# RUN git clone --recursive https://github.com/ekg/freebayes
+# RUN cd freebayes && make; make install
+RUN git clone --recursive https://github.com/ekg/freebayes && cd freebayes && make; make install
+
 
 
 # install bwe-mem
 RUN git clone https://github.com/lh3/bwa.git && cd bwa; make; cp bwa /usr/local/bin
 
 # Install BCFTools
-#RUN git clone git://github.com/samtools/htslib.git; cd htslib && make && make install
-#RUN git clone git://github.com/samtools/bcftools.git; cd bcftools; autoheader && autoconf && ./configure --enable-libgsl --enable-perl-filters; make
+RUN git clone git://github.com/samtools/htslib.git; cd htslib && make && make install
+RUN git clone git://github.com/samtools/bcftools.git; cd bcftools; autoheader && autoconf && ./configure --enable-libgsl --enable-perl-filters; make
 
 
 # Install SnpEff
-#RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
+RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
 
 # Install convbioseq
 RUN easy_install biopython
@@ -84,8 +86,8 @@ RUN git clone https://github.com/stamatak/standard-RAxML.git && cd standard-RAxM
     rm *.o && \
     make -f Makefile.AVX.PTHREADS.gcc
 
-# RUN pip install VCF-kit
-# RUN vk setup
+RUN python -m pip install VCF-kit
+RUN vk setup
 
 ## Install R packages for ggplot2
 RUN R -e 'install.packages( c("reshape2","optparse", "BiocManager"), repos="http://cloud.r-project.org/");' && \
@@ -93,13 +95,13 @@ RUN R -e 'install.packages( c("reshape2","optparse", "BiocManager"), repos="http
 RUN R -e 'BiocManager::install("dupRadar");'
 
 # Install SRA toolkit
-#RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.2/sratoolkit.2.9.2-ubuntu64.tar.gz" && \
-#   tar -xzf sratoolkit.2.9.2-ubuntu64.tar.gz
-#ENV PATH "$PATH:/sratoolkit.2.9.2-ubuntu64/bin/:/vcf2fasta/"
+RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.11.3/sratoolkit.2.11.3-ubuntu64.tar.gz" && \
+   tar -xzf sratoolkit.2.11.3-ubuntu64.tar.gz
+ENV PATH "$PATH:/sratoolkit.2.11.3-ubuntu64/bin/:/vcf2fasta/"
 
 # Install trimmomatic
 
-RUN curl -L http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip > Trimmomatic-0.38.zip && unzip Trimmomatic-0.38.zip
+RUN curl -L http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip > Trimmomatic-0.39.zip && unzip Trimmomatic-0.39.zip
 
 
 
@@ -155,8 +157,7 @@ ENV DST=/tmp
 ENV URL=https://github.com/agordon/libgtextutils/releases/download/0.7/
 
 RUN wget $URL/libgtextutils-0.7.tar.gz -O $DST/libgtextutils-0.7.tar.gz && \
-
-  tar -xvf $DST/libgtextutils-0.7.tar.gz -C $DST && \
+  tar -xvzf $DST/libgtextutils-0.7.tar.gz -C $DST && \
   rm $DST/libgtextutils-0.7.tar.gz && \
   cd $DST/libgtextutils-0.7 && \
   ./configure && \
@@ -164,7 +165,6 @@ RUN wget $URL/libgtextutils-0.7.tar.gz -O $DST/libgtextutils-0.7.tar.gz && \
   make install && \
   cd / && \
 rm -rf $DST/libgtextutils-0.7
-
 
 WORKDIR /
 
@@ -191,7 +191,7 @@ RUN apt-get install -y curl grep sed dpkg && \
 
 
 RUN conda install -c bioconda fastqc
-RUN conda install -c bioconda picard=2.18.27
+RUN conda install -c bioconda picard=2.26.11
 RUN conda install -c bioconda conda-forge::r-data.table=1.12.0
 RUN conda install -c bioconda conda-forge::r-gplots=3.0.1.1
 RUN conda install -c bioconda conda-forge::r-markdown=0.9
@@ -220,7 +220,7 @@ RUN conda install -c bioconda phyml
 # Clustering
 
 
-RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2 && tar xvfj samtools-0.1.18.tar.bz2 && cd samtools-0.1.18 && make
+RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/1.14/samtools-1.14.tar.bz2 && tar xvfj samtools-1.14.tar.bz2 && cd samtools-1.14 && make
 
 
 # Visualisation
@@ -235,7 +235,7 @@ RUN cd /opt && \
 
 
 # Install vcf2fasta
-RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
+RUN git clone https://github.com/egeza/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
 RUN ln -s /vcf2fasta/vcf2fasta.py /usr/local/bin/vcf2fasta.py
 RUN ln -s /vcf2fasta/process_samples.py /usr/local/bin/process_samples.py
 
@@ -246,5 +246,5 @@ RUN ln -s /vcf2fasta/process_samples.py /usr/local/bin/process_samples.py
 #docker run -v /var/run/docker.sock:/var/run/docker.sock -v /Volumes/External/bac_genomics:/output --privileged -t --rm singularityware/docker2singularity:v2.6 -m "/shared_fs /custom_mountpoint2" bacterial_genomics:latest
 
 # To SCP
-# scp /Volumes/External/bac_genomics/<image> jambler@transfer.ilifu.ac.za:/cbio/users/jambler/images/
+# scp /Volumes/External/bac_genomics/<image> ephie@transfer.ilifu.ac.za:/cbio/users/ephie/images/
 
