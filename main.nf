@@ -1045,7 +1045,7 @@ if (params.snpeffDb == 'build') {
    mv $gff ${params.outdir}/snpEffDB/newBacGenome/genes.gff
 
    # Copy config from repo
-   cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
+   cp ~/.nextflow/assets/egeza/bacterial_variant_calling/assets/snpEff.config snpEff.config
    sed -i 's+./data/+${params.outdir}/snpEffDB/+' snpEff.config
 
    # Edit the snpEff.config, add: newBacGenome.genome: newBacGenome
@@ -1076,7 +1076,7 @@ if (params.snpeffDb == 'build') {
     script:
     """
     # Copy config from repo
-    cp ~/.nextflow/assets/uct-cbio/bacterial_variant_calling/assets/snpEff.config snpEff.config
+    cp ~/.nextflow/assets/egeza/bacterial_variant_calling/assets/snpEff.config snpEff.config
     sed -i 's+./data/+${params.outdir}snpEffDB/+' snpEff.config
     snpEff -Xmx4g download ${params.snpeffDb} -c ./snpEff.config
     """
