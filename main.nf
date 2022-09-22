@@ -1023,7 +1023,7 @@ if (params.snpeffDb == 'build') {
 
   process '4E_Snpeff_setup_new_DB' {
 
-   publishDir "${params.outdir}/snpEffDB", mode: "link", overwrite: false
+   publishDir "${params.outdir}/snpEffDB", mode: "link", overwrite: true
 
    input:
      file genome from genome_file
@@ -1036,7 +1036,7 @@ if (params.snpeffDb == 'build') {
    """
 
    # Make a new folder in snpEffDB
-   mkdir ${params.outdir}/snpEffDB/newBacGenome
+   mkdir -p ${params.outdir}/snpEffDB/newBacGenome
 
    # Copy genome file, rename to sequences.fa
    mv $genome ${params.outdir}/snpEffDB/newBacGenome/sequences.fa
