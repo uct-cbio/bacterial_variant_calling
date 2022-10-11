@@ -1036,7 +1036,7 @@ if (params.snpeffDb == 'build') {
    """
 
    # Make a new folder in snpEffDB
-   # mkdir -p ${params.outdir}/snpEffDB/newBacGenome
+   mkdir -p ${params.outdir}/snpEffDB/newBacGenome
 
    # Copy genome file, rename to sequences.fa
    mv $genome ${params.outdir}/snpEffDB/newBacGenome/sequences.fa
