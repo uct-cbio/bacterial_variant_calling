@@ -26,7 +26,7 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     rename \
     meson \
     ninja-build \
-    python-pip \
+    python3-pip \
     && apt-get clean \
     && apt-get purge
 
@@ -82,7 +82,8 @@ RUN wget https://github.com/samtools/bcftools/releases/download/1.3.1/bcftools-1
 RUN apt-get install -y freebayes
 
 # Install SnpEff
-RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
+RUN curl -fksSL http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && \
+    unzip snpEff_latest_core.zip
 
 # Install vcf2fasta
 RUN git clone https://github.com/egeza/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py

@@ -23,58 +23,47 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     git-core \
     bc \
     unzip \
-    wget \
+    wget \    
     rename \
     xutils-dev \
     python3 \
     python3-pip \
     bowtie2 \
+    meson \
+    perl \
     && apt-get clean \
     && apt-get purge
 
 RUN apt-get update --fix-missing -qq && apt-get install -y -q \
-   software-properties-common
-   
+    software-properties-common
+
 RUN add-apt-repository ppa:deadsnakes/ppa
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 RUN python --version
 
-RUN python -m pip install --upgrade pip
-RUN python -m pip install numpy
-RUN python -m pip install scipy
-RUN python -m pip install biopython
-RUN python -m pip install git+https://github.com/katholt/srst2
-RUN python -m pip install RSeQC
-RUN python -m pip install multiqc
-RUN python -m pip install venn
-RUN python -m pip install pandas
-# Biopython is pre-requisite
-RUN python -m pip install bioscripts.convert
+RUN python -m pip install --upgrade pip && \
+    python -m pip install numpy && \
+    python -m pip install scipy && \
+    python -m pip install biopython && \
+    python -m pip install RSeQC && \
+    python -m pip install multiqc && \
+    python -m pip install venn  && \
+    python -m pip install pandas && \
+    # Biopython is pre-requisite
+    python -m pip install bioscripts.convert
 
-# install Picard Tools
-RUN curl -fksSL https://github.com/broadinstitute/picard/releases/download/2.9.0/picard.jar > /usr/local/bin/picard.jar && \
-    chmod +x /usr/local/bin/picard.jar
-
-# install VCFtools
 RUN curl -fksSL https://github.com/vcftools/vcftools/releases/download/v0.1.14/vcftools-0.1.14.tar.gz | tar xz && \
     cd vcftools-0.1.14 && \
     ./configure; make; make install
 
-# Install RAxML
-RUN git clone https://github.com/stamatak/standard-RAxML.git && cd standard-RAxML* && \
-    make -f Makefile.AVX.gcc && \
-    rm *.o && \
-    make -f Makefile.AVX.PTHREADS.gcc
-
-# Install R packages for ggplot2
-RUN R -e 'install.packages( c("reshape2","optparse", "BiocManager"), repos="http://cloud.r-project.org/");' && \
+## Install R packages for ggplot2
+RUN R -e 'install.packages( c("reshape","optparse", "BiocManager"), repos="http://cloud.r-project.org/");' && \
     apt-get update && apt-get install r-cran-ggplot2 -y -q
 RUN R -e 'BiocManager::install("dupRadar");'
 
-################################################################################################
-# Install Jellyfish
+# Install Jellyfish (a tool for fast, memory-efficient counting of k-mers in DNA)
 RUN cd /opt && \
     wget https://github.com/gmarcais/Jellyfish/releases/download/v2.2.6/jellyfish-2.2.6.tar.gz && \
     tar -xvf jellyfish-2.2.6.tar.gz && \
@@ -84,20 +73,6 @@ RUN cd /opt && \
     ln -s /opt/jellyfish-2.2.6/bin/jellyfish /usr/bin && \
     cd / && \
     rm /opt/jellyfish-2.2.6.tar.gz
-
-# Install kSNP3 and dependencies
-ENV DST=/tmp
-ENV URL=https://downloads.sourceforge.net/project/ksnp/
-
-RUN cd /opt && \
-    apt-get install -y tcsh && \
-    rm -rf /var/lib/apt/lists/* && \
-    cd /opt && \
-    wget $URL/kSNP3.1_Linux_package.zip -O $DST/kSNP3.1_Linux_package.zip && \
-    unzip $DST/kSNP3.1_Linux_package.zip && \
-    rm $DST/kSNP3.1_Linux_package.zip && \
-    cp kSNP3.1_Linux_package/kSNP3/kSNP3 /usr/local && \
-    cd /
 
 # Install CoverageSampler
 RUN cd /opt && \
@@ -128,7 +103,7 @@ RUN wget $URL/libgtextutils-0.7.tar.gz -O $DST/libgtextutils-0.7.tar.gz && \
     cd / && \
     rm -rf $DST/libgtextutils-0.7
 
-WORKDIR /
+WORKDIR /opt/
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
@@ -140,84 +115,87 @@ RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificate
 # Install miniconda
 RUN mkdir -p ~/miniconda3
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh && \
-    /bin/bash ~/miniconda3/miniconda.sh -b -u -p /opt/conda && 
+    /bin/bash ~/miniconda3/miniconda.sh -b -u -p /opt/conda && \
     rm -rf ~/miniconda3/miniconda.sh && \
     ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo "conda activate base" >> ~/.bashrc
-
-#Install mamba so that we can install conda packages with mamba
-RUN conda install mamba -n base -c conda-forge
-
-#Install conda packages using mamba
-RUN mamba install -c hcc resistomeanalyzer
-RUN mamba install -c bioconda trimmomatic
-RUN mamba install -c bioconda fastqc
-RUN mamba install -c bioconda picard=2.18.27
-RUN mamba install -c conda-forge gsl
-RUN mamba install -c bioconda snpeff
-
-#To bypass the problem of "Encountered problems while solving:-nothing provides ..." use -c conda-forge -c bioconda
-RUN mamba install -c conda-forge -c bioconda trim-galore
-#install after trim-galore to avoid dependency problems
-RUN mamba install -c bioconda cutadapt
-RUN mamba install -c bioconda fastx_toolkit
-RUN mamba install -c bioconda gffread=0.9.12
-# scipy is required by deeptools
-RUN mamba install -c conda-forge scipy
-RUN mamba install -c bioconda deeptools=3.2.0
-RUN mamba install -c bioconda sra-tools
-RUN mamba install -c bioconda bioconductor-dupradar
-RUN mamba install -c bioconda samtools
-Run mamba install -c bioconda tbb=2020.2
-
-RUN mamba install -c bioconda star
-RUN mamba install -c bioconda bwa
-RUN mamba install -c bioconda bowtie2
-RUN mamba install -c bioconda csvtk=0.17.0
-
-# R related nonsense
-RUN mamba install -c bioconda bioconductor-deseq2
-RUN mamba install -c conda-forge r-data.table
-RUN mamba install -c conda-forge r-gplots
-RUN mamba install -c conda-forge r-markdown
-
-# Alignment
-RUN mamba install -c bioconda clustalo
-RUN mamba install -c bioconda muscle
-RUN mamba install -c bioconda mafft
-
-# Phylogenetics
-RUN mamba install -c bioconda freebayes
-RUN mamba install -c bioconda beast
-RUN mamba install -c conda-forge -c bioconda phyml
-
-# Clustering
-#RUN curl -O -L https://sourceforge.net/projects/samtools/files/samtools/$
-
-# Visualisation
-RUN mamba install -c bioconda circos
-# install tini
-RUN mamba install -c conda-forge tini
-#Figtree requires xorg-libxtst 
-RUN mamba install -c conda-forge xorg-libxtst
-# Install Figtree
-RUN mamba install -c bioconda figtree
 
 # Install vcf2fasta
 RUN git clone https://github.com/egeza/vcf2fasta.git && \
     cd vcf2fasta && \
     chmod a+x process_samples.py && \
     chmod a+x vcf2fasta.py && \
-    ln -s /vcf2fasta/vcf2fasta.py /usr/local/bin/vcf2fasta.py
-RUN ln -s /vcf2fasta/process_samples.py /usr/local/bin/process_samples.py
+    ln -s /vcf2fasta/vcf2fasta.py /usr/local/bin/vcf2fasta.py && \
+    ln -s /vcf2fasta/process_samples.py /usr/local/bin/process_samples.py
+
+#Install mamba so that we can install conda packages with mamba
+RUN conda install mamba -n base -c conda-forge && \
+    mamba clean -i 
+
+#Install conda packages using mamba
+RUN mamba install -c hcc resistomeanalyzer
+RUN mamba install -c conda-forge -c bioconda python=3.9 \
+    cutadapt \
+    fastqc \
+    picard=2.18.27 \
+    deeptools \
+    gsl \
+    xorg-libxtst  \
+    r-data.table \
+    r-gplots \
+    r-markdown \
+    tini \
+    trimmomatic \
+    snpeff \
+    fastx_toolkit  \
+    raxml \
+    gffread=0.9.12 
+
+RUN wget https://github.com/ComputationalSystemsBiology/EoulsanDockerFiles/raw/master/TrimAdapt/trim_galore_v0.4.1.zip && \
+    unzip trim_galore_v0.4.1.zip -d . && \
+    ln -s /opt/trim_galore_zip/trim_galore /usr/local/bin/
+
+# figtree requires xorg-libxtst. Some errors especially 
+RUN mamba install -c conda-forge -c bioconda sra-tools \ 
+    samtools \
+    tbb=2020.2 \ 
+    star \
+    bwa \ 
+    # CSV/TSV toolkit
+    csvtk=0.17.0 \
+    bcftools \
+    # Alignment
+    clustalo \
+    muscle \
+    mafft \
+    # Phylogenetics
+    freebayes \
+    beast \
+    circos \
+    figtree \
+    bioconductor-deseq2 \
+    phyml
+
+# ksnp keeps updating and unfortunately with no tracks of older versions 
+RUN wget https://sourceforge.net/projects/ksnp/files/kSNP4%20Linux%20package.zip/download && \
+  mv download download.zip && \
+  unzip download.zip && \
+  #mv kSNP4\ Linux\ package/kSNP4pkg/ /usr/local/bin/
+  mv kSNP4\ Linux\ package/ kSNP4_Linux_package && \ 
+  ln /opt/kSNP4_Linux_package/kSNP4pkg/kSNP4 /usr/local/bin/
+
+RUN groupadd -r -g 1000 ubuntu && useradd -r -g ubuntu -u 1000 -m ubuntu
+USER ubuntu
+
+ENV PATH /usr/local/envs/bacterial_genomics/bin/:$PATH
 
 # Build this image
-## docker build --network=host -t bacterial_variant_calling -f BacDock .
+#docker build --network=host -t bacterial_variant_calling_v1 -f BacDock
 
 # To build sing image
-## docker run -v /var/run/docker.sock:/var/run/docker.sock -v /vol1/ephie:/output --privileged -t --rm singularityware/docker2singularity -m "/shared_fs /custom_mountpoint2" bacterial_variant_calling:latest
+#docker run -v /var/run/docker.sock:/var/run/docker.sock -v /vol1/ephie/output --privileged -t --rm \
+#singularityware/docker2singularity:v2.6 -m "/shared_fs /custom_mountpoint2" bacterial_variant_calling_v1:latest
 
 # To SCP
-# scp /vol1/ephie/<image> ephie@transfer.ilifu.ac.za:/cbio/users/ephie/images/
-
+# scp /vol1/ephie/output/<image> ephie@transfer.ilifu.ac.za:/cbio/users/ephie/images/
