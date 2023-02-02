@@ -1,11 +1,19 @@
-FROM ubuntu:xenial
+FROM quay.io/cybozu/ubuntu:20.04
 
 RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     curl \
     locales \
     libncurses5-dev  \
     libncursesw5-dev \
+    autoconf \
     build-essential \
+    libssl-dev \
+    libghc-zlib-dev \
+    libcurl4-gnutls-dev \
+    libexpat1-dev \
+    libgsl0-dev \
+    gettext \
+    unzip \
     pkg-config \
     zlib1g-dev \
     bzip2 \
@@ -15,13 +23,24 @@ RUN apt-get update --fix-missing -qq && apt-get install -y -q \
     bc \
     python3 \
     wget \
-    python-pip \
+    rename \
+    meson \
+    ninja-build \
+    python3-pip \
     && apt-get clean \
     && apt-get purge
 
+RUN apt-get update --fix-missing -qq && apt-get install -y -q \
+  software-properties-common
 
-RUN pip install --upgrade pip
-RUN pip install numpy
+ RUN add-apt-repository ppa:deadsnakes/ppa
+ 
+ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+
+ RUN python --version
+
+RUN python -m pip install --upgrade pip
+RUN python -m pip install numpy
 
 # install Picard Tools
 RUN curl -fksSL https://github.com/broadinstitute/picard/releases/download/2.9.0/picard.jar > /usr/local/bin/picard.jar && \
@@ -41,25 +60,38 @@ RUN curl -fksSL https://github.com/vcftools/vcftools/releases/download/v0.1.14/v
 RUN curl -fksSL https://github.com/alexdobin/STAR/archive/2.5.2b.tar.gz | tar xz && \
     cp STAR-2.5.2b/bin/Linux_x86_64/* /usr/local/bin
 
-# install bwe-mem
+# install bwa-mem
 RUN git clone https://github.com/lh3/bwa.git && cd bwa; make; cp bwa /usr/local/bin
 
-# Install freebayes
-RUN git clone --recursive https://github.com/ekg/freebayes && cd freebayes && make; make install
-
 # Install BCFTools
-RUN git clone git://github.com/samtools/htslib.git; cd htslib && make && make install
-RUN git clone git://github.com/samtools/bcftools.git; cd bcftools; autoheader && autoconf && ./configure --enable-libgsl --enable-perl-filters; make
+## Install htslib first
+RUN wget https://github.com/samtools/htslib/releases/download/1.3.2/htslib-1.3.2.tar.bz2 -O htslib.tar.bz2 && \
+    tar -xjvf htslib.tar.bz2 && \
+    cd htslib-1.3.2 && \
+    make && \
+    make install
+    
+RUN wget https://github.com/samtools/bcftools/releases/download/1.3.1/bcftools-1.3.1.tar.bz2 -O bcftools.tar.bz2 && \
+    tar -xjvf bcftools.tar.bz2 && \
+    cd bcftools-1.3.1 && \
+    make && \
+    make prefix=/usr/local/bin install && \
+    ln -s /usr/local/bin/bin/bcftools /usr/bin/bcftools
+
+# Install freebayes
+RUN apt-get install -y freebayes
 
 # Install SnpEff
-RUN curl -L http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && unzip snpEff_latest_core.zip
+RUN curl -fksSL http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip > snpEff_latest_core.zip && \
+    unzip snpEff_latest_core.zip
 
 # Install vcf2fasta
-RUN git clone https://github.com/jambler24/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
+RUN git clone https://github.com/egeza/vcf2fasta.git && cd vcf2fasta && chmod a+x process_samples.py && chmod a+x vcf2fasta.py
 
 # Install convbioseq
-RUN easy_install biopython
-RUN easy_install bioscripts.convert
+RUN python -m pip install biopython
+## Biopython is pre-requisite
+RUN python -m pip install bioscripts.convert
 
 # Install RAxML
 RUN git clone https://github.com/stamatak/standard-RAxML.git && cd standard-RAxML* && \
@@ -75,10 +107,9 @@ RUN R -e 'install.packages( c("reshape2","optparse"), repos="http://cloud.r-proj
     apt-get update && apt-get install r-cran-ggplot2 -y -q
 
 # Install SRA toolkit
-RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.2/sratoolkit.2.9.2-ubuntu64.tar.gz" && \
-   tar -xzf sratoolkit.2.9.2-ubuntu64.tar.gz
-ENV PATH "$PATH:/sratoolkit.2.9.2-ubuntu64/bin/:/vcf2fasta/"
+RUN wget "https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.11.3/sratoolkit.2.11.3-ubuntu64.tar.gz" && \
+   tar -xzf sratoolkit.2.11.3-ubuntu64.tar.gz
+ENV PATH "$PATH:/sratoolkit.2.11.3-ubuntu64/bin/:/vcf2fasta/"
 
 # Install trimmomatic
-
-RUN curl -L http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip > Trimmomatic-0.38.zip && unzip Trimmomatic-0.38.zip
+RUN curl -L http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip > Trimmomatic-0.39.zip && unzip Trimmomatic-0.39.zip
